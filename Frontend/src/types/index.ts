@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 export type UserRole = 'admin' | 'user'
 
 export type TaskStatus = 'To Do' | 'In Progress' | 'Done'
@@ -98,4 +100,24 @@ export interface ApiResponse<TData = unknown> {
     body?: TBody,
     headers?: Record<string, string>
   ) => Promise<TData | null>;
+}
+
+export interface AuthContextType {
+  user: User | null
+  isAuthenticated: boolean
+  login: (username: string) => void
+  logout: () => void
+}
+
+export interface ThemeContextType {
+  darkMode: boolean
+  toggleDarkMode: () => void
+}
+
+export interface AuthProviderProps {
+  children: ReactNode
+}
+
+export interface ThemeProviderProps {
+  children: ReactNode
 }
