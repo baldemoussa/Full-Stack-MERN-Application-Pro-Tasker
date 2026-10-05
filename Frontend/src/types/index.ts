@@ -30,3 +30,72 @@ export interface Task {
   createdAt: string
   updatedAt: string
 }
+
+export interface AuthResponse {
+  token: string
+  user: Omit<User, 'password'>
+}
+
+export interface ApiMessage {
+  message: string
+}
+
+export interface RegisterBody {
+  username: string
+  email: string
+  password: string
+}
+
+export interface LoginBody {
+  email: string
+  password: string
+}
+
+export interface ProjectBody {
+  name: string
+  description: string
+}
+
+export interface TaskBody {
+  title: string
+  description: string
+  status?: TaskStatus
+}
+
+export interface UseApiConfig {
+  token?: string | null
+  baseUrl?: string
+}
+
+export type HttpMethod = 'POST' | 'PUT' | 'DELETE'
+
+export interface RequestOptions<TBody = unknown> {
+  headers?: HeadersInit
+  body?: TBody
+}
+
+export interface ApiResponse<TData = unknown> {
+  data: TData | null;
+  error: Error | null;
+  loading: boolean;
+  execute: (
+    url: string,
+    method: HttpMethod,
+    options?: RequestOptions<unknown>
+  ) => Promise<TData | null>;
+  post: <TBody = unknown>(
+    url: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ) => Promise<TData | null>;
+  put: <TBody = unknown>(
+    url: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ) => Promise<TData | null>;
+  del: <TBody = unknown>(
+    url: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ) => Promise<TData | null>;
+}
