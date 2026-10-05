@@ -102,10 +102,17 @@ export interface ApiResponse<TData = unknown> {
   ) => Promise<TData | null>;
 }
 
+export type SessionUser = Omit<User, 'password'>
+
 export interface AuthContextType {
-  user: User | null
+  user: SessionUser | null
+  token: string | null
   isAuthenticated: boolean
-  login: (username: string) => void
+  loading: boolean
+  submitting: boolean
+  error: string | null
+  login: (body: LoginBody) => Promise<boolean>
+  register: (body: RegisterBody) => Promise<boolean>
   logout: () => void
 }
 
@@ -120,4 +127,8 @@ export interface AuthProviderProps {
 
 export interface ThemeProviderProps {
   children: ReactNode
+}
+
+export interface AlertProps {
+  message: string | null
 }

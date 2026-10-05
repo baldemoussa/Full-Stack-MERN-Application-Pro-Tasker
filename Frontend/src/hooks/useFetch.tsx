@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+// GET requests that should run when a URL exists, such as GET /api/users/me.
+// Pass null for the URL to wait, for example until a token is available.
 async function errorMessage(response: Response) {
   try {
     const data: unknown = await response.json();
@@ -20,6 +22,19 @@ export function useFetch<T>(url: string | null, headers?: HeadersInit) {
   const headersKey = headers
     ? JSON.stringify(Object.fromEntries(new Headers(headers).entries()))
     : "";
+  // A new object with the same Authorization value must not refetch forever.
+  // Compare the header text, not the object identity.
+  const requestKey = `${url ?? ""} ${headersKey}`;
+  const [seenRequestKey, setSeenRequestKey] = useState(requestKey);
+
+  // Clear the previous user as soon as the token or URL changes, before the
+  // next request finishes. Otherwise logout could still show the old user.
+  if (requestKey !== seenRequestKey) {
+    setSeenRequestKey(requestKey);
+    setData(null);
+    setError(null);
+    setLoading(Boolean(url));
+  }
 
   useEffect(() => {
     if (!url) {
@@ -28,6 +43,7 @@ export function useFetch<T>(url: string | null, headers?: HeadersInit) {
     }
 
     const requestUrl = url;
+    // Ignore a response that arrives after this effect has been replaced.
     let cancelled = false;
 
     async function loadData() {

@@ -1,12 +1,15 @@
 import { useState, useCallback } from 'react';
 import type { HttpMethod, RequestOptions, ApiResponse, UseApiConfig } from '../types';
 
+// POST, PUT, and DELETE. GET lives in useFetch because those requests run on their own.
+// Login and register use this hook. Project and task changes will use it too.
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
   throw new Error('Set VITE_API_URL in the Frontend .env file.');
 }
 
+// Prefer the API's { message } body, such as "Wrong password!", over a generic status.
 async function errorMessage(response: Response) {
   try {
     const data: unknown = await response.json();
@@ -35,10 +38,12 @@ export function useApi<TData = unknown>(config?: UseApiConfig): ApiResponse<TDat
       setError(null);
 
       try {
+        // "/api/users/login" becomes "http://localhost:3000/api/users/login".
+        // A full URL is left alone so a caller can override the host.
         const baseUrl = config?.baseUrl ?? API_URL;
         const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `${baseUrl}${url}`;
 
-        // Build headers with optional Bearer Token
+        // Protected routes need the JWT. Login and register pass no token.
         const headers: HeadersInit = {
           'Content-Type': 'application/json',
           ...(config?.token ? { Authorization: `Bearer ${config.token}` } : {}),
@@ -68,6 +73,7 @@ export function useApi<TData = unknown>(config?: UseApiConfig): ApiResponse<TDat
         const requestError =
           err instanceof Error ? err : new Error('An unknown error occurred');
         setError(requestError);
+        // null tells the caller the request failed. The message is on `error`.
         return null;
       } finally {
         setLoading(false);
