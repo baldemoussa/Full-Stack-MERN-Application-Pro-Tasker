@@ -147,3 +147,21 @@ export interface TaskColumnProps {
   status: TaskStatus
   tasks: Task[]
 }
+
+export interface ProjectFormProps {
+  initialValues?: ProjectBody
+  submitLabel: string
+  submitting?: boolean
+  error?: string | null
+  onSubmit: (body: ProjectBody) => void
+  onCancel?: () => void
+}
+
+export interface TaskFormProps {
+  initialValues?: TaskBody
+  submitLabel: string
+  submitting?: boolean
+  error?: string | null
+  onSubmit: (body: TaskBody) => void
+  onCancel?: () => void
+}
