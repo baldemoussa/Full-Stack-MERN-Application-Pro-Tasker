@@ -165,3 +165,9 @@ export interface TaskFormProps {
   onSubmit: (body: TaskBody) => void
   onCancel?: () => void
 }
+
+export interface ModalProps {
+  title: string
+  onClose: () => void
+  children: ReactNode
+}
