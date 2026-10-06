@@ -4,11 +4,12 @@ import Modal from "../components/Modal";
 import ProjectCard from "../components/ProjectCard";
 import ProjectForm from "../components/ProjectForm";
 import TaskColumn from "../components/TaskColumn";
+import TaskForm from "../components/TaskForm";
 import Alert from "../components/Alert";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
-import type { Project, ProjectBody, TaskStatus } from "../types";
+import type { Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
 
 const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
@@ -21,9 +22,16 @@ export default function DashboardPage() {
     authHeaders(token)
   );
   const projectApi = useApi<Project>({ token });
+  const taskApi = useApi<Task>({ token });
   const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [projectFormOpen, setProjectFormOpen] = useState(false);
+  const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const taskList = useFetch<Task[]>(
+    token && selectedId ? `${API_URL}/api/projects/${selectedId}/tasks` : null,
+    authHeaders(token)
+  );
 
   // Replace the sidebar when GET /api/projects returns. A project created
   // after that is added in handleCreate, so it shows without another request.
@@ -42,6 +50,18 @@ export default function DashboardPage() {
     });
   }, [projectList.data]);
 
+  // Drop the previous board as soon as another project is selected. The next
+  // effect fills it when GET /api/projects/:id/tasks returns.
+  useEffect(() => {
+    setTasks([]);
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (taskList.data) {
+      setTasks(taskList.data);
+    }
+  }, [taskList.data]);
+
   const selectedProject = projects.find((project) => project._id === selectedId) ?? null;
 
   async function handleCreate(body: ProjectBody) {
@@ -52,7 +72,21 @@ export default function DashboardPage() {
 
     setProjects((current) => [...current, created]);
     setSelectedId(created._id);
-    setFormOpen(false);
+    setProjectFormOpen(false);
+  }
+
+  async function handleCreateTask(body: TaskBody) {
+    if (!selectedId) {
+      return;
+    }
+
+    const created = await taskApi.post<TaskBody>(`/api/projects/${selectedId}/tasks`, body);
+    if (!created) {
+      return;
+    }
+
+    setTasks((current) => [...current, created]);
+    setTaskFormOpen(false);
   }
 
   return (
@@ -65,7 +99,7 @@ export default function DashboardPage() {
             <button
               type="button"
               className="rounded bg-teal-800 px-2 py-1 text-sm text-white"
-              onClick={() => setFormOpen(true)}
+              onClick={() => setProjectFormOpen(true)}
             >
               New project
             </button>
@@ -91,27 +125,58 @@ export default function DashboardPage() {
         <main className="flex-1 p-4">
           {selectedProject ? (
             <>
-              <h2 className="text-2xl font-semibold">{selectedProject.name}</h2>
-              <p className="mt-1 text-stone-600">{selectedProject.description}</p>
-              <div className="mt-6 grid gap-4 md:grid-cols-3">
-                {STATUSES.map((status) => (
-                  <TaskColumn key={status} status={status} tasks={[]} />
-                ))}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-2xl font-semibold">{selectedProject.name}</h2>
+                  <p className="mt-1 text-stone-600">{selectedProject.description}</p>
+                </div>
+                <button
+                  type="button"
+                  className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
+                  onClick={() => setTaskFormOpen(true)}
+                >
+                  New task
+                </button>
               </div>
+              <Alert message={taskList.error} />
+              {taskList.loading && tasks.length === 0 ? (
+                <p className="mt-6 text-sm text-stone-500">Loading tasks...</p>
+              ) : (
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                  {STATUSES.map((status) => (
+                    <TaskColumn
+                      key={status}
+                      status={status}
+                      tasks={tasks.filter((task) => task.status === status)}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <p className="text-stone-600">Create a project to open its board.</p>
           )}
         </main>
       </div>
-      {formOpen && (
-        <Modal title="New project" onClose={() => setFormOpen(false)}>
+      {projectFormOpen && (
+        <Modal title="New project" onClose={() => setProjectFormOpen(false)}>
           <ProjectForm
             submitLabel="Create project"
             submitting={projectApi.loading}
             error={projectApi.error?.message ?? null}
             onSubmit={handleCreate}
-            onCancel={() => setFormOpen(false)}
+            onCancel={() => setProjectFormOpen(false)}
+          />
+        </Modal>
+      )}
+      {taskFormOpen && selectedProject && (
+        <Modal title="New task" onClose={() => setTaskFormOpen(false)}>
+          <TaskForm
+            submitLabel="Create task"
+            submitting={taskApi.loading}
+            error={taskApi.error?.message ?? null}
+            onSubmit={handleCreateTask}
+            onCancel={() => setTaskFormOpen(false)}
           />
         </Modal>
       )}
