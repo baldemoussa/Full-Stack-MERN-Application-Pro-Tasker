@@ -175,9 +175,9 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <AppHeader />
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="border-b border-stone-200 p-4 md:w-72 md:border-b-0 md:border-r">
+        <aside className="border-b border-stone-200 p-4 dark:border-stone-700 md:w-72 md:border-b-0 md:border-r">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-sm font-semibold uppercase tracking-wide text-stone-500">My projects</h1>
+            <h1 className="text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">My projects</h1>
             <button
               type="button"
               className="rounded bg-teal-800 px-2 py-1 text-sm text-white"
@@ -192,7 +192,7 @@ export default function DashboardPage() {
               <Spinner label="Loading projects..." />
             </p>
           ) : projects.length === 0 ? (
-            <p className="mt-3 text-sm text-stone-500">No projects yet.</p>
+            <p className="mt-3 text-sm text-stone-500 dark:text-stone-400">No projects yet.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {projects.map((project) => (
@@ -212,19 +212,19 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-semibold">{selectedProject.name}</h2>
-                  <p className="mt-1 text-stone-600">{selectedProject.description}</p>
+                  <p className="mt-1 text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-2">
                   <button
                     type="button"
-                    className="rounded border border-stone-300 px-3 py-2 text-sm"
+                    className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
                     onClick={openEditProject}
                   >
                     Edit
                   </button>
                   <button
                     type="button"
-                    className="rounded border border-red-200 px-3 py-2 text-sm text-red-700"
+                    className="rounded border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
                     onClick={() => setProjectDeleteOpen(true)}
                   >
                     Delete
@@ -258,7 +258,7 @@ export default function DashboardPage() {
               )}
             </>
           ) : (
-            <p className="text-stone-600">Create a project to open its board.</p>
+            <p className="text-stone-600 dark:text-stone-300">Create a project to open its board.</p>
           )}
         </main>
       </div>

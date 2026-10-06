@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Alert from "../components/Alert";
+import ThemeToggle from "../components/ThemeToggle";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -30,12 +31,15 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold">Log in</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Log in</h1>
+        <ThemeToggle />
+      </div>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <label className="block">
           <span>Email</span>
           <input
-            className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -45,7 +49,7 @@ export default function LoginPage() {
         <label className="block">
           <span>Password</span>
           <input
-            className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
+            className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -63,7 +67,7 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="mt-4">
-        <Link className="text-teal-800 underline" to="/register">
+        <Link className="text-teal-800 underline dark:text-teal-300" to="/register">
           Need an account? Register
         </Link>
       </p>

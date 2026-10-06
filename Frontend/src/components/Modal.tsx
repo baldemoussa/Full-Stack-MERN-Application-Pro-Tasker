@@ -20,12 +20,12 @@ export default function Modal({ title, onClose, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-md rounded bg-white p-4 shadow-lg"
+        className="w-full max-w-md rounded bg-white p-4 text-stone-900 shadow-lg dark:bg-stone-900 dark:text-stone-100"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button type="button" className="rounded px-2 py-1 text-stone-500" onClick={onClose}>
+          <button type="button" className="rounded px-2 py-1 text-stone-500 dark:text-stone-400" onClick={onClose}>
             Close
           </button>
         </div>

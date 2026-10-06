@@ -4,8 +4,14 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  // ThemeProvider adds the "dark" class. "media" would follow the OS instead.
+  darkMode: "class",
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        nunito: ["Nunito", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 }
