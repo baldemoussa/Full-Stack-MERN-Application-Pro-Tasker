@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import Alert from "../components/Alert";
 import AppHeader from "../components/AppHeader";
 import Modal from "../components/Modal";
 import ProjectCard from "../components/ProjectCard";
 import ProjectForm from "../components/ProjectForm";
+import Spinner from "../components/Spinner";
 import TaskColumn from "../components/TaskColumn";
 import TaskForm from "../components/TaskForm";
-import Alert from "../components/Alert";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
-import type { Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
+import type { ApiMessage, Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
 
 const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
@@ -22,19 +23,25 @@ export default function DashboardPage() {
     authHeaders(token)
   );
   const projectApi = useApi<Project>({ token });
+  const projectDeleteApi = useApi<ApiMessage>({ token });
   const taskApi = useApi<Task>({ token });
+  const taskDeleteApi = useApi<ApiMessage>({ token });
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState(false);
+  const [projectDeleteOpen, setProjectDeleteOpen] = useState(false);
   const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const taskList = useFetch<Task[]>(
     token && selectedId ? `${API_URL}/api/projects/${selectedId}/tasks` : null,
     authHeaders(token)
   );
 
-  // Replace the sidebar when GET /api/projects returns. A project created
-  // after that is added in handleCreate, so it shows without another request.
+  // Replace the sidebar when GET /api/projects returns. Later creates and
+  // updates change this list in place, so the sidebar does not wait for another GET.
   useEffect(() => {
     const list = projectList.data;
     if (!list) {
@@ -64,7 +71,27 @@ export default function DashboardPage() {
 
   const selectedProject = projects.find((project) => project._id === selectedId) ?? null;
 
-  async function handleCreate(body: ProjectBody) {
+  function openCreateProject() {
+    setEditingProject(false);
+    setProjectFormOpen(true);
+  }
+
+  function openEditProject() {
+    setEditingProject(true);
+    setProjectFormOpen(true);
+  }
+
+  function openCreateTask() {
+    setEditingTask(null);
+    setTaskFormOpen(true);
+  }
+
+  function openEditTask(task: Task) {
+    setEditingTask(task);
+    setTaskFormOpen(true);
+  }
+
+  async function handleCreateProject(body: ProjectBody) {
     const created = await projectApi.post<ProjectBody>("/api/projects", body);
     if (!created) {
       return;
@@ -75,18 +102,73 @@ export default function DashboardPage() {
     setProjectFormOpen(false);
   }
 
-  async function handleCreateTask(body: TaskBody) {
+  async function handleUpdateProject(body: ProjectBody) {
     if (!selectedId) {
       return;
     }
 
-    const created = await taskApi.post<TaskBody>(`/api/projects/${selectedId}/tasks`, body);
-    if (!created) {
+    const updated = await projectApi.put<ProjectBody>(`/api/projects/${selectedId}`, body);
+    if (!updated) {
       return;
     }
 
-    setTasks((current) => [...current, created]);
+    setProjects((current) =>
+      current.map((project) => (project._id === updated._id ? updated : project))
+    );
+    setProjectFormOpen(false);
+  }
+
+  async function handleDeleteProject() {
+    if (!selectedProject) {
+      return;
+    }
+
+    const removedId = selectedProject._id;
+    const result = await projectDeleteApi.del(`/api/projects/${removedId}`);
+    if (!result) {
+      return;
+    }
+
+    const remaining = projects.filter((project) => project._id !== removedId);
+    setProjects(remaining);
+    setSelectedId(remaining[0]?._id ?? null);
+    setProjectDeleteOpen(false);
+  }
+
+  async function handleSaveTask(body: TaskBody) {
+    if (!selectedId) {
+      return;
+    }
+
+    const saved = editingTask
+      ? await taskApi.put<TaskBody>(`/api/projects/${selectedId}/tasks/${editingTask._id}`, body)
+      : await taskApi.post<TaskBody>(`/api/projects/${selectedId}/tasks`, body);
+    if (!saved) {
+      return;
+    }
+
+    setTasks((current) =>
+      editingTask
+        ? current.map((task) => (task._id === saved._id ? saved : task))
+        : [...current, saved]
+    );
     setTaskFormOpen(false);
+    setEditingTask(null);
+  }
+
+  async function handleDeleteTask() {
+    if (!selectedId || !taskToDelete) {
+      return;
+    }
+
+    const removedId = taskToDelete._id;
+    const result = await taskDeleteApi.del(`/api/projects/${selectedId}/tasks/${removedId}`);
+    if (!result) {
+      return;
+    }
+
+    setTasks((current) => current.filter((task) => task._id !== removedId));
+    setTaskToDelete(null);
   }
 
   return (
@@ -99,14 +181,16 @@ export default function DashboardPage() {
             <button
               type="button"
               className="rounded bg-teal-800 px-2 py-1 text-sm text-white"
-              onClick={() => setProjectFormOpen(true)}
+              onClick={openCreateProject}
             >
               New project
             </button>
           </div>
           <Alert message={projectList.error} />
           {projectList.loading && projects.length === 0 ? (
-            <p className="mt-3 text-sm text-stone-500">Loading projects...</p>
+            <p className="mt-3">
+              <Spinner label="Loading projects..." />
+            </p>
           ) : projects.length === 0 ? (
             <p className="mt-3 text-sm text-stone-500">No projects yet.</p>
           ) : (
@@ -130,17 +214,35 @@ export default function DashboardPage() {
                   <h2 className="text-2xl font-semibold">{selectedProject.name}</h2>
                   <p className="mt-1 text-stone-600">{selectedProject.description}</p>
                 </div>
-                <button
-                  type="button"
-                  className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
-                  onClick={() => setTaskFormOpen(true)}
-                >
-                  New task
-                </button>
+                <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    className="rounded border border-stone-300 px-3 py-2 text-sm"
+                    onClick={openEditProject}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded border border-red-200 px-3 py-2 text-sm text-red-700"
+                    onClick={() => setProjectDeleteOpen(true)}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
+                    onClick={openCreateTask}
+                  >
+                    New task
+                  </button>
+                </div>
               </div>
               <Alert message={taskList.error} />
               {taskList.loading && tasks.length === 0 ? (
-                <p className="mt-6 text-sm text-stone-500">Loading tasks...</p>
+                <p className="mt-6">
+                  <Spinner label="Loading tasks..." />
+                </p>
               ) : (
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
                   {STATUSES.map((status) => (
@@ -148,6 +250,8 @@ export default function DashboardPage() {
                       key={status}
                       status={status}
                       tasks={tasks.filter((task) => task.status === status)}
+                      onEdit={openEditTask}
+                      onDelete={setTaskToDelete}
                     />
                   ))}
                 </div>
@@ -159,25 +263,89 @@ export default function DashboardPage() {
         </main>
       </div>
       {projectFormOpen && (
-        <Modal title="New project" onClose={() => setProjectFormOpen(false)}>
+        <Modal title={editingProject ? "Edit project" : "New project"} onClose={() => setProjectFormOpen(false)}>
           <ProjectForm
-            submitLabel="Create project"
+            key={editingProject ? selectedId ?? "edit" : "new"}
+            initialValues={
+              editingProject && selectedProject
+                ? { name: selectedProject.name, description: selectedProject.description }
+                : undefined
+            }
+            submitLabel={editingProject ? "Save changes" : "Create project"}
             submitting={projectApi.loading}
             error={projectApi.error?.message ?? null}
-            onSubmit={handleCreate}
+            onSubmit={editingProject ? handleUpdateProject : handleCreateProject}
             onCancel={() => setProjectFormOpen(false)}
           />
         </Modal>
       )}
+      {projectDeleteOpen && selectedProject && (
+        <Modal title="Delete project" onClose={() => setProjectDeleteOpen(false)}>
+          <p>Delete {selectedProject.name}? Its tasks will be removed too.</p>
+          <Alert message={projectDeleteApi.error?.message ?? null} />
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded px-3 py-2"
+              onClick={() => setProjectDeleteOpen(false)}
+              disabled={projectDeleteApi.loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="rounded bg-red-700 px-3 py-2 text-white disabled:opacity-60"
+              onClick={handleDeleteProject}
+              disabled={projectDeleteApi.loading}
+            >
+              {projectDeleteApi.loading ? <Spinner label="Deleting..." light /> : "Delete project"}
+            </button>
+          </div>
+        </Modal>
+      )}
       {taskFormOpen && selectedProject && (
-        <Modal title="New task" onClose={() => setTaskFormOpen(false)}>
+        <Modal title={editingTask ? "Edit task" : "New task"} onClose={() => setTaskFormOpen(false)}>
           <TaskForm
-            submitLabel="Create task"
+            key={editingTask?._id ?? "new"}
+            initialValues={
+              editingTask
+                ? {
+                    title: editingTask.title,
+                    description: editingTask.description,
+                    status: editingTask.status,
+                  }
+                : undefined
+            }
+            submitLabel={editingTask ? "Save changes" : "Create task"}
             submitting={taskApi.loading}
             error={taskApi.error?.message ?? null}
-            onSubmit={handleCreateTask}
+            onSubmit={handleSaveTask}
             onCancel={() => setTaskFormOpen(false)}
           />
+        </Modal>
+      )}
+      {taskToDelete && (
+        <Modal title="Delete task" onClose={() => setTaskToDelete(null)}>
+          <p>Delete {taskToDelete.title}?</p>
+          <Alert message={taskDeleteApi.error?.message ?? null} />
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded px-3 py-2"
+              onClick={() => setTaskToDelete(null)}
+              disabled={taskDeleteApi.loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="rounded bg-red-700 px-3 py-2 text-white disabled:opacity-60"
+              onClick={handleDeleteTask}
+              disabled={taskDeleteApi.loading}
+            >
+              {taskDeleteApi.loading ? <Spinner label="Deleting..." light /> : "Delete task"}
+            </button>
+          </div>
         </Modal>
       )}
     </div>

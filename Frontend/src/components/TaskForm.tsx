@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
+import Spinner from "./Spinner";
 import type { TaskFormProps, TaskStatus } from "../types";
 
 const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
@@ -76,7 +77,7 @@ export default function TaskForm({
           className="rounded bg-teal-800 px-3 py-2 text-white disabled:opacity-60"
           disabled={submitting}
         >
-          {submitting ? "Saving..." : submitLabel}
+          {submitting ? <Spinner label="Saving..." light /> : submitLabel}
         </button>
       </div>
     </form>

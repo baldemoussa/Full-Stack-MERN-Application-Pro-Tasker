@@ -141,11 +141,20 @@ export interface ProjectCardProps {
 
 export interface TaskCardProps {
   task: Task
+  onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
 }
 
 export interface TaskColumnProps {
   status: TaskStatus
   tasks: Task[]
+  onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
+}
+
+export interface SpinnerProps {
+  label: string
+  light?: boolean
 }
 
 export interface ProjectFormProps {

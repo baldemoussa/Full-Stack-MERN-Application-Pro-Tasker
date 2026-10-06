@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
+import Spinner from "./Spinner";
 import type { ProjectFormProps } from "../types";
 
 // Create or edit a project. The parent sends the body to the API.
@@ -59,7 +60,7 @@ export default function ProjectForm({
           className="rounded bg-teal-800 px-3 py-2 text-white disabled:opacity-60"
           disabled={submitting}
         >
-          {submitting ? "Saving..." : submitLabel}
+          {submitting ? <Spinner label="Saving..." light /> : submitLabel}
         </button>
       </div>
     </form>
