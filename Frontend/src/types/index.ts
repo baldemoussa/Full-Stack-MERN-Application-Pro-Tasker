@@ -132,3 +132,18 @@ export interface ThemeProviderProps {
 export interface AlertProps {
   message: string | null
 }
+
+export interface ProjectCardProps {
+  project: Project
+  selected: boolean
+  onSelect: (projectId: string) => void
+}
+
+export interface TaskCardProps {
+  task: Task
+}
+
+export interface TaskColumnProps {
+  status: TaskStatus
+  tasks: Task[]
+}
