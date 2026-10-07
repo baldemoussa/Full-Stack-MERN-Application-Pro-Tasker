@@ -5,3 +5,19 @@
 .font-nunito {
   font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
 }
+
+@layer base {
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800;
+  }
+}
+
+@layer components {
+  .field {
+    @apply mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-base text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100;
+  }
+}

@@ -30,7 +30,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
+    <main className="mx-auto flex min-h-screen w-full max-w-md items-center p-4 sm:p-6">
+      <div className="w-full rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Log in</h1>
         <ThemeToggle />
@@ -39,7 +40,7 @@ export default function LoginPage() {
         <label className="block">
           <span>Email</span>
           <input
-            className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
+            className="field"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -49,7 +50,7 @@ export default function LoginPage() {
         <label className="block">
           <span>Password</span>
           <input
-            className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
+            className="field"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -71,6 +72,7 @@ export default function LoginPage() {
           Need an account? Register
         </Link>
       </p>
+      </div>
     </main>
   );
 }

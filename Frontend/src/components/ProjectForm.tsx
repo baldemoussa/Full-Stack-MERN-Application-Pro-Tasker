@@ -32,7 +32,7 @@ export default function ProjectForm({
       <label className="block">
         <span>Name</span>
         <input
-          className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
+          className="field"
           value={name}
           onChange={(event) => setName(event.target.value)}
           required
@@ -41,7 +41,7 @@ export default function ProjectForm({
       <label className="block">
         <span>Description</span>
         <textarea
-          className="mt-1 w-full rounded border border-stone-300 bg-white px-3 py-2 text-stone-900 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
+          className="field"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={3}
@@ -51,7 +51,7 @@ export default function ProjectForm({
       <Alert message={formError ?? error} />
       <div className="flex justify-end gap-2">
         {onCancel && (
-          <button type="button" className="rounded px-3 py-2" onClick={onCancel} disabled={submitting}>
+          <button type="button" className="rounded border border-stone-300 px-3 py-2 dark:border-stone-600" onClick={onCancel} disabled={submitting}>
             Cancel
           </button>
         )}

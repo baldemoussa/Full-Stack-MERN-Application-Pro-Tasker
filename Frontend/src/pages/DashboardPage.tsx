@@ -174,13 +174,13 @@ export default function DashboardPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
-      <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="border-b border-stone-200 p-4 dark:border-stone-700 md:w-72 md:border-b-0 md:border-r">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <aside className="max-h-56 overflow-y-auto border-b border-stone-200 p-4 dark:border-stone-700 md:max-h-none md:w-72 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">My projects</h1>
+            <h1 className="min-w-0 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">My projects</h1>
             <button
               type="button"
-              className="rounded bg-teal-800 px-2 py-1 text-sm text-white"
+              className="shrink-0 rounded bg-teal-800 px-2 py-1 text-sm text-white"
               onClick={openCreateProject}
             >
               New project
@@ -206,15 +206,15 @@ export default function DashboardPage() {
             </div>
           )}
         </aside>
-        <main className="flex-1 p-4">
+        <main className="flex min-w-0 flex-1 flex-col p-4">
           {selectedProject ? (
-            <>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-semibold">{selectedProject.name}</h2>
-                  <p className="mt-1 text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="break-words text-2xl font-semibold">{selectedProject.name}</h2>
+                  <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
                 </div>
-                <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                   <Spinner label="Loading tasks..." />
                 </p>
               ) : (
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
+                <div className="mt-6 grid flex-1 content-stretch gap-4 md:grid-cols-3">
                   {STATUSES.map((status) => (
                     <TaskColumn
                       key={status}
@@ -256,7 +256,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <p className="text-stone-600 dark:text-stone-300">Create a project to open its board.</p>
           )}
@@ -286,7 +286,7 @@ export default function DashboardPage() {
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded px-3 py-2"
+              className="rounded border border-stone-300 px-3 py-2 dark:border-stone-600"
               onClick={() => setProjectDeleteOpen(false)}
               disabled={projectDeleteApi.loading}
             >
@@ -331,7 +331,7 @@ export default function DashboardPage() {
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded px-3 py-2"
+              className="rounded border border-stone-300 px-3 py-2 dark:border-stone-600"
               onClick={() => setTaskToDelete(null)}
               disabled={taskDeleteApi.loading}
             >
