@@ -4,6 +4,15 @@ Pro-Tasker is an owner-only project board. A user registers, creates projects, a
 
 The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller, and every project and task route checks that the caller owns the record.
 
+## Deployment
+
+| Service | URL |
+| --- | --- |
+| Application | https://full-stack-mern-application-pro-tasker-1.onrender.com |
+| API | https://full-stack-mern-application-pro-tasker.onrender.com |
+
+Both services deploy from the `main` branch. The application is the React site. The API is the Express service. Local setup below is for running the same app on your machine.
+
 ## Features
 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours.
