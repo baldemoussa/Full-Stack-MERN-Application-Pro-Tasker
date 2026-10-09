@@ -8,6 +8,8 @@
 | Version | 1.0 |
 | Date | 8 October 2026 |
 | Status | Delivered |
+| Author | Mamadou Moussa BALDE |
+| LinkedIn | https://www.linkedin.com/in/2mb/ |
 | Repository | https://github.com/baldemoussa/Full-Stack-MERN-Application-Pro-Tasker |
 
 This document describes the delivered application: what it does, how a person uses it, how it is built, how to run it, and how it is deployed. It is the handover record for the client. It does not contain passwords, database credentials, or the JWT signing secret.
@@ -1052,6 +1054,7 @@ These items were recorded as future work. They are not part of this delivery.
 
 | Item | Delivered |
 | --- | --- |
+| Author | [Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/) |
 | Source repository | https://github.com/baldemoussa/Full-Stack-MERN-Application-Pro-Tasker |
 | Live application | https://full-stack-mern-application-pro-tasker-1.onrender.com |
 | Live API | https://full-stack-mern-application-pro-tasker.onrender.com |

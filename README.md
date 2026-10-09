@@ -1,5 +1,7 @@
 # Pro-Tasker
 
+**Author:** [Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/)
+
 Pro-Tasker is an owner-only project board. A user registers, creates projects, and moves each project's tasks across three columns: To Do, In Progress, and Done.
 
 The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller, and every project and task route checks that the caller owns the record.
@@ -12,6 +14,24 @@ The API is Express and MongoDB. The client is React. A JSON Web Token identifies
 | API | https://full-stack-mern-application-pro-tasker.onrender.com |
 
 Both services deploy from the `main` branch. The application is the React site. The API is the Express service. Local setup below is for running the same app on your machine.
+
+## Screenshots
+
+### Project board
+
+![Project board with To Do, In Progress, and Done columns](docs/screenshots/dashboard.png)
+
+### Night mode
+
+![The same board in night mode](docs/screenshots/dashboard-night.png)
+
+### Log in
+
+![Log in screen](docs/screenshots/login.png)
+
+### Create an account
+
+![Registration screen](docs/screenshots/register.png)
 
 ## Features
 
