@@ -35,7 +35,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md items-center p-4 sm:p-6">
+    <main className="mx-auto flex w-full max-w-md flex-1 items-center p-4 sm:p-6">
       <div className="w-full rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <div className="flex items-center justify-between gap-3">
         <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">Create an account</h1>

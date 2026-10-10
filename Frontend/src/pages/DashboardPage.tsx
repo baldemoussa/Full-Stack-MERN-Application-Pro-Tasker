@@ -172,7 +172,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <AppHeader />
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <aside className="max-h-56 overflow-y-auto border-b border-stone-200 p-4 dark:border-stone-700 md:max-h-none md:w-72 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r">
