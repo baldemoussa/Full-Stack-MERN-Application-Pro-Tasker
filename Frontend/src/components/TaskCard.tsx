@@ -1,18 +1,52 @@
-import type { TaskCardProps } from "../types";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { Task, TaskCardProps } from "../types";
 
-export default function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+export function TaskCardFace({ task }: { task: Task }) {
   return (
-    <article className="rounded border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-700 dark:bg-stone-800">
-      <h3 className="break-words font-medium">{task.title}</h3>
-      <p className="mt-1 break-words text-sm text-stone-600 dark:text-stone-300">{task.description}</p>
-      <div className="mt-3 flex gap-2">
-        <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onEdit(task)}>
-          Edit
-        </button>
-        <button type="button" className="rounded px-2 py-1 text-sm text-red-700 dark:text-red-300" onClick={() => onDelete(task)}>
-          Delete
-        </button>
-      </div>
+    <>
+      <h3 className="break-words text-lg font-bold leading-tight">{task.title}</h3>
+      <p className="mt-1 line-clamp-3 break-words text-sm text-stone-500 dark:text-stone-400">{task.description}</p>
+    </>
+  );
+}
+
+export default function TaskCard({ task, canEdit, onEdit, onDelete }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task._id,
+    disabled: !canEdit,
+    data: { type: "Task", task },
+  });
+
+  return (
+    <article
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+      }}
+      className={`rounded-xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-700 dark:bg-stone-800 ${
+        canEdit ? "cursor-grab active:cursor-grabbing" : ""
+      }`}
+      {...(canEdit ? attributes : {})}
+      {...(canEdit ? listeners : {})}
+    >
+      <TaskCardFace task={task} />
+      {canEdit && (
+        <div
+          className="mt-3 flex gap-2 border-t border-stone-100 pt-3 dark:border-stone-700"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onEdit(task)}>
+            Edit
+          </button>
+          <button type="button" className="rounded px-2 py-1 text-sm text-red-700 dark:text-red-300" onClick={() => onDelete(task)}>
+            Delete
+          </button>
+        </div>
+      )}
     </article>
   );
 }

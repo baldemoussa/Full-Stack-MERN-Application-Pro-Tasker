@@ -13,6 +13,16 @@ export default function ProjectCard({ project, selected, onSelect }: ProjectCard
       <span className={`mt-1 line-clamp-2 break-words text-sm ${selected ? "text-teal-100" : "text-stone-500 dark:text-stone-400"}`}>
         {project.description}
       </span>
+      {project.access !== "owner" && (
+        <span className={`mt-1 block text-xs ${selected ? "text-teal-100" : "text-stone-500 dark:text-stone-400"}`}>
+          {project.access === "edit" ? "Can edit" : "View only"}
+        </span>
+      )}
+      {project.access === "owner" && project.collaborators?.length > 0 && (
+        <span className={`mt-1 block text-xs ${selected ? "text-teal-100" : "text-stone-500 dark:text-stone-400"}`}>
+          Shared
+        </span>
+      )}
     </button>
   );
 }

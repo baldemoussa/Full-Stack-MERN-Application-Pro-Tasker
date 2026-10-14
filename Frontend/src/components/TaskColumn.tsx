@@ -1,25 +1,52 @@
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { TaskColumnProps, TaskStatus } from "../types";
 import TaskCard from "./TaskCard";
 
 const columnTone: Record<TaskStatus, string> = {
-  "To Do": "border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900",
-  "In Progress": "border-amber-100 bg-amber-50 dark:border-amber-900 dark:bg-amber-950",
-  Done: "border-emerald-100 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950",
+  "To Do": "border-stone-200 bg-gradient-to-br from-stone-50 to-stone-100 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800",
+  "In Progress": "border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 dark:border-amber-900 dark:from-amber-950 dark:to-amber-900",
+  Done: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:border-emerald-900 dark:from-emerald-950 dark:to-emerald-900",
 };
 
-export default function TaskColumn({ status, tasks, onEdit, onDelete }: TaskColumnProps) {
+const headerTone: Record<TaskStatus, string> = {
+  "To Do": "border-stone-200 text-stone-700 dark:border-stone-700 dark:text-stone-200",
+  "In Progress": "border-amber-200 text-amber-800 dark:border-amber-900 dark:text-amber-300",
+  Done: "border-emerald-200 text-emerald-800 dark:border-emerald-900 dark:text-emerald-300",
+};
+
+export default function TaskColumn({ status, tasks, canEdit, onEdit, onDelete }: TaskColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: status, disabled: !canEdit });
+  const reduceMotion = useReducedMotion();
+
   return (
-    <section className={`flex h-full min-h-48 flex-col rounded border p-3 ${columnTone[status]}`}>
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-700 dark:text-stone-200">{status}</h2>
-      <div className="mt-3 space-y-3">
-        {tasks.length === 0 ? (
-          <p className="text-sm text-stone-500 dark:text-stone-400">No tasks</p>
-        ) : (
-          tasks.map((task) => (
-            <TaskCard key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} />
-          ))
-        )}
-      </div>
+    <section className={`flex h-full flex-col gap-4 rounded-2xl border p-4 shadow-sm ${columnTone[status]} ${isOver ? "ring-2 ring-teal-700" : ""}`}>
+      <h2 className={`border-b-2 pb-2 text-center text-sm font-black uppercase tracking-widest ${headerTone[status]}`}>
+        {status} <span className="text-xs font-semibold opacity-75">({tasks.length})</span>
+      </h2>
+      <ul ref={setNodeRef} className="flex min-h-48 flex-1 flex-col gap-3">
+        <SortableContext id={status} items={tasks.map((task) => task._id)} strategy={verticalListSortingStrategy}>
+          <AnimatePresence initial={false} mode="popLayout">
+            {tasks.length === 0 ? (
+              <li className="text-sm text-stone-500 dark:text-stone-400">No tasks</li>
+            ) : (
+              tasks.map((task) => (
+                <motion.li
+                  key={task._id}
+                  layout
+                  initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12, scale: 0.96 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                >
+                  <TaskCard task={task} canEdit={canEdit} onEdit={onEdit} onDelete={onDelete} />
+                </motion.li>
+              ))
+            )}
+          </AnimatePresence>
+        </SortableContext>
+      </ul>
     </section>
   );
 }

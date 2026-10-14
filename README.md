@@ -2,9 +2,9 @@
 
 **Author:** [Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/)
 
-Pro-Tasker is an owner-only project board. A user registers, creates projects, and moves each project's tasks across three columns: To Do, In Progress, and Done.
+Pro-Tasker is a project board. A user registers, creates projects, invites other registered users, and moves each project's tasks across three columns: To Do, In Progress, and Done.
 
-The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller, and every project and task route checks that the caller owns the record.
+The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller. Project and task routes then check whether that caller is the owner, an editor, or a viewer.
 
 ## Deployment
 
@@ -37,17 +37,18 @@ Both services deploy from the `main` branch. The application is the React site. 
 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours.
 - Create, read, update, and delete projects.
-- Create, read, update, and delete tasks nested under a project.
-- Deleting a project also deletes that project's tasks.
+- Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
+- Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board.
+- An overview counts Total, To Do, In Progress, and Done for the open project.
+- Drag a card onto another column. The new status is saved. Edit still changes status too.
+- Deleting a project also deletes that project's tasks. Only the owner can delete a project.
 - Light mode and night mode. The choice is saved in `localStorage`.
-
-Collaboration and drag-and-drop are not in this version. A task changes column through Edit.
 
 ## Tech stack
 
 | Layer | Tools |
 | --- | --- |
-| Frontend | React 19, TypeScript, Vite, React Router, Tailwind CSS |
+| Frontend | React 19, TypeScript, Vite, React Router, Tailwind CSS, dnd-kit, Motion |
 | Backend | Node.js, Express 5, Mongoose 9, JWT, bcrypt |
 | Database | MongoDB |
 
@@ -60,9 +61,10 @@ Backend/
   models/                   User, Project, Task
   routes/api/               /api/users and /api/projects
   utils/auth.js             Sign a token and require one on protected routes
+  utils/access.js           Owner, edit, and view checks
   server.js
 Frontend/
-  src/components/           Forms, cards, columns, modal, theme toggle
+  src/components/           Forms, cards, drag-and-drop board, share form, modal, theme toggle
   src/context/              Auth and theme contracts
   src/hooks/                useApi (POST, PUT, DELETE) and useFetch (GET)
   src/pages/                Login, register, dashboard
@@ -130,7 +132,7 @@ Any other path redirects to `/dashboard`.
 
 ## API
 
-Send `Authorization: Bearer <token>` on every route except register and login. A missing or invalid token returns **401**. A record owned by someone else returns **403**. A missing record returns **404**.
+Send `Authorization: Bearer <token>` on every route except register and login. A missing or invalid token returns **401**. A caller without access returns **403**. A missing record returns **404**.
 
 ### Users
 
@@ -151,8 +153,10 @@ Register and login return a token. The client then calls `/api/users/me` and use
 | GET | `/api/projects/:id` | — |
 | PUT | `/api/projects/:id` | `name`, `description` |
 | DELETE | `/api/projects/:id` | — |
+| POST | `/api/projects/:id/collaborators` | `email`, `permission` (`view` or `edit`) |
+| DELETE | `/api/projects/:id/collaborators/:userId` | — |
 
-The owner is stored as `user`. The client cannot change that field. Delete also removes every task whose `project` is that id.
+The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, or delete the project. Delete also removes every task whose `project` is that id.
 
 ### Tasks
 
@@ -170,5 +174,6 @@ The owner is stored as `user`. The client cannot change that field. Delete also 
 1. The dashboard calls `useFetch` for `GET /api/projects` and `GET /api/projects/:id/tasks`.
 2. Create, update, and delete go through `useApi` (`post`, `put`, `del`).
 3. `authMiddleware` reads the bearer token and sets `req.user`.
-4. The controller checks ownership, then reads or writes MongoDB.
-5. The page adds the returned record to the list already on screen. A failed call returns `null` and shows the API `message`.
+4. The controller checks whether the caller is the owner, an editor, or a viewer, then reads or writes MongoDB.
+5. Dragging a card sends `PUT` with the new `status`. The card moves immediately and returns if the save fails.
+6. The page adds the returned record to the list already on screen. A failed call returns `null` and shows the API `message`.

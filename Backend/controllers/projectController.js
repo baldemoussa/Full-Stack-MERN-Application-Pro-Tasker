@@ -1,12 +1,33 @@
-const { Project, Task } = require('../models');
+const { Project, Task, User } = require('../models');
+const { accessLevel, canEdit, canView, idOf, presentProject } = require('../utils/access');
+
+const collaboratorFields = 'username email';
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function loadProject(id) {
+  return Project.findById(id).populate('collaborators.user', collaboratorFields);
+}
+
+function writableFields(body) {
+  const updates = { ...body };
+  delete updates.user;
+  delete updates.collaborators;
+  delete updates.access;
+  return updates;
+}
 
 async function createProject(req, res) {
   try {
-    const project = await Project.create({
-      ...req.body,
+    const created = await Project.create({
+      ...writableFields(req.body),
       user: req.user._id,
+      collaborators: [],
     });
-    res.status(201).json(project);
+    const project = await loadProject(created._id);
+    res.status(201).json(presentProject(project, req.user._id));
   } catch (err) {
     res.status(400).json(err);
   }
@@ -14,8 +35,14 @@ async function createProject(req, res) {
 
 async function getAllProjects(req, res) {
   try {
-    const projects = await Project.find({ user: req.user._id });
-    res.json(projects);
+    const projects = await Project.find({
+      $or: [
+        { user: req.user._id },
+        { 'collaborators.user': req.user._id },
+      ],
+    }).populate('collaborators.user', collaboratorFields);
+
+    res.json(projects.map((project) => presentProject(project, req.user._id)));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -23,14 +50,14 @@ async function getAllProjects(req, res) {
 
 async function getProjectById(req, res) {
   try {
-    const project = await Project.findById(req.params.id);
+    const project = await loadProject(req.params.id);
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canView(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to view this project.' });
     }
-    res.json(project);
+    res.json(presentProject(project, req.user._id));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -38,18 +65,17 @@ async function getProjectById(req, res) {
 
 async function updateProject(req, res) {
   try {
-    const project = await Project.findById(req.params.id);
+    const project = await loadProject(req.params.id);
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to update this project.' });
     }
 
-    const updates = { ...req.body };
-    delete updates.user;
-    const updatedProject = await Project.findByIdAndUpdate(req.params.id, updates, { new: true });
-    res.json(updatedProject);
+    Object.assign(project, writableFields(req.body));
+    await project.save();
+    res.json(presentProject(project, req.user._id));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -61,12 +87,80 @@ async function deleteProject(req, res) {
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (accessLevel(project, req.user._id) !== 'owner') {
       return res.status(403).json({ message: 'User is not authorized to delete this project.' });
     }
     await Task.deleteMany({ project: project._id });
     await Project.findByIdAndDelete(req.params.id);
     res.json({ message: 'Project deleted!' });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+}
+
+async function addCollaborator(req, res) {
+  try {
+    const project = await loadProject(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'No project found with this id!' });
+    }
+    if (accessLevel(project, req.user._id) !== 'owner') {
+      return res.status(403).json({ message: 'Only the project owner can invite collaborators.' });
+    }
+
+    const email = String(req.body.email || '').trim();
+    const permission = req.body.permission;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required.' });
+    }
+    if (permission !== 'view' && permission !== 'edit') {
+      return res.status(400).json({ message: 'Permission must be view or edit.' });
+    }
+
+    const invitee = await User.findOne({
+      email: new RegExp(`^${escapeRegex(email)}$`, 'i'),
+    });
+    if (!invitee) {
+      return res.status(404).json({ message: 'No registered user with that email.' });
+    }
+    if (idOf(invitee._id) === idOf(project.user)) {
+      return res.status(400).json({ message: 'The owner is already on this project.' });
+    }
+
+    const existing = project.collaborators.find((entry) => idOf(entry.user) === idOf(invitee._id));
+    if (existing) {
+      existing.permission = permission;
+    } else {
+      project.collaborators.push({ user: invitee._id, permission });
+    }
+
+    await project.save();
+    await project.populate('collaborators.user', collaboratorFields);
+    res.status(existing ? 200 : 201).json(presentProject(project, req.user._id));
+  } catch (err) {
+    res.status(400).json(err);
+  }
+}
+
+async function removeCollaborator(req, res) {
+  try {
+    const project = await loadProject(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'No project found with this id!' });
+    }
+    if (accessLevel(project, req.user._id) !== 'owner') {
+      return res.status(403).json({ message: 'Only the project owner can remove collaborators.' });
+    }
+
+    const entry = project.collaborators.find((item) => idOf(item.user) === req.params.userId);
+    if (!entry) {
+      return res.status(404).json({ message: 'That person is not a collaborator on this project.' });
+    }
+    project.collaborators.pull(entry._id);
+
+    await project.save();
+    await project.populate('collaborators.user', collaboratorFields);
+    res.json(presentProject(project, req.user._id));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -78,4 +172,6 @@ module.exports = {
   getProjectById,
   updateProject,
   deleteProject,
+  addCollaborator,
+  removeCollaborator,
 };

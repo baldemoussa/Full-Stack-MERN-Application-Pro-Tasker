@@ -6,7 +6,7 @@
 | --- | --- |
 | Product | Pro-Tasker |
 | Version | 1.0 |
-| Date | 8 October 2026 |
+| Date | 14 October 2026 |
 | Status | Delivered |
 | Author | Mamadou Moussa BALDE |
 | LinkedIn | https://www.linkedin.com/in/2mb/ |
@@ -20,7 +20,7 @@ This document describes the delivered application: what it does, how a person us
 
 Pro-Tasker is a web application for personal project tracking. A person creates an account, adds projects, and manages each project's tasks on a three-column board: **To Do**, **In Progress**, and **Done**.
 
-Each account sees only its own projects and tasks. The browser stores a signed token for the current tab. The server checks that token on every project and task request, then checks that the record belongs to the caller.
+Each account sees the projects it owns and the projects it is invited to. The browser stores a signed token for the current tab. The server checks that token on every project and task request, then checks that the caller is the owner or a collaborator.
 
 The delivered system has two public addresses:
 
@@ -52,8 +52,9 @@ The application is a React site. The API is an Express service. Both are hosted 
 - Register, log in, and log out.
 - A session that survives a refresh in the same browser tab and ends when the tab closes or after two hours.
 - Create, view, update, and delete projects.
-- Create, view, update, and delete tasks under a project.
-- A board with three columns. Changing a task's status moves the card.
+- Invite a registered user to a project as **view** or **edit**. The owner can change that permission or remove the person.
+- Create, view, update, and delete tasks under a project when the caller can edit.
+- A board with three columns. Drag a card onto another column, or change the status in **Edit**.
 - Deleting a project also deletes that project's tasks.
 - Loading indicators while lists and saves are in progress.
 - Error messages from the API, shown on the form that caused them.
@@ -63,8 +64,6 @@ The application is a React site. The API is an Express service. Both are hosted 
 
 ### Not in this version
 
-- Shared projects, invites, or more than one owner.
-- Drag-and-drop between columns. Status changes through **Edit**.
 - Password reset, email verification, or profile editing.
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
@@ -105,19 +104,22 @@ Refreshing the dashboard keeps the person signed in. Closing the tab ends the se
 The left side of the dashboard is **My projects**.
 
 - **New project** asks for a name and a description. Both are required.
-- Selecting a project opens its board.
-- **Edit** changes the name and description of the selected project.
-- **Delete** asks for confirmation. Confirming removes the project and every task on it.
+- Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
+- **Share** is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
+- **Edit** changes the name and description. Owners and people who can edit see this button. View-only people do not.
+- **Delete** asks for confirmation and is only shown to the owner. Confirming removes the project and every task on it.
 
 ### Tasks
 
 With a project selected, the board shows **To Do**, **In Progress**, and **Done**.
 
-- **New task** asks for a title, a description, and a status. The status starts as **To Do**.
-- **Edit** on a card changes those three fields. Choosing a different status moves the card to that column.
+- **New task** asks for a title, a description, and a status. The status starts as **To Do**. View-only people do not see this button.
+- An overview above the columns counts **Total tasks**, **To Do**, **In Progress**, and **Done**.
+- Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
+- **Edit** on a card changes the title, description, and status.
 - **Delete** on a card asks for confirmation, then removes that task only.
 
-Empty columns show **No tasks**.
+Empty columns show **No tasks**. A view-only board explains that drag, edit, and delete stay with people who can edit.
 
 ### Appearance
 
@@ -187,7 +189,7 @@ Create and update use one `useApi` instance. Delete uses another. A delete error
 
 ### Move a task
 
-Editing a task and choosing **In Progress** or **Done** sends `PUT /api/projects/:projectId/tasks/:taskId` with the new `status`. The page replaces that task in state. Each column shows only the tasks whose `status` matches its heading, so the card moves without a second request.
+Dragging a card onto another column, or editing it and choosing **In Progress** or **Done**, sends `PUT /api/projects/:projectId/tasks/:taskId` with the new `status`. The page moves the card immediately. Each column shows only the tasks whose `status` matches its heading. A failed drag puts the card back. View-only collaborators cannot drag.
 
 ---
 
@@ -198,6 +200,7 @@ A user owns many projects. A project contains many tasks. The link is stored as 
 ```mermaid
 erDiagram
   USER ||--o{ PROJECT : owns
+  USER }o--o{ PROJECT : collaborates
   PROJECT ||--o{ TASK : contains
   USER {
     string username
@@ -333,7 +336,7 @@ GET /api/users/me
 
 ### Project data
 
-The owner is never taken from the client on create. The controller writes `user: req.user._id`. On update, `user` is deleted from the body before `findByIdAndUpdate`, so a caller cannot reassign a project.
+The owner is never taken from the client on create. The controller writes `user: req.user._id` and starts `collaborators` as an empty list. On update, `user`, `collaborators`, and `access` are removed from the body, so a caller cannot reassign the project or edit the invite list through the project update.
 
 ```text
 POST /api/projects
@@ -345,22 +348,30 @@ POST /api/projects
 GET /api/projects
   -> authMiddleware
   -> getAllProjects
-       -> Project.find({ user: req.user._id })
-       -> 200 array (empty when the caller has none)
+       -> Project.find owner or collaborator
+       -> 200 array, each item includes access: owner, edit, or view
 
-GET, PUT, or DELETE /api/projects/:id
+GET /api/projects/:id
   -> authMiddleware
-  -> load Project.findById
-       missing                         -> 404
-       project.user !== req.user._id   -> 403
-       owned                           -> return, update, or delete
+  -> load the project
+       missing                                      -> 404
+       caller is not owner or collaborator          -> 403
+       owner, edit, or view                         -> 200
+
+PUT /api/projects/:id
+  -> owner or edit -> update name and description
+  -> view or outsider -> 403
+
+DELETE /api/projects/:id
+  -> owner only
+  -> anyone else -> 403
 ```
 
 Delete is two writes. `Task.deleteMany({ project: project._id })` runs first. `Project.findByIdAndDelete` runs only after that. A failed ownership check deletes nothing.
 
 ### Task data
 
-A task has no owner field. The workflow always loads the parent project and compares `project.user` with `req.user._id`. The task's `project` value comes from `:projectId` in the URL, not from the body. On update, `project` is removed from the body so a caller cannot move a task onto another project.
+A task has no owner field. The workflow loads the parent project and checks the caller's access. View, edit, and owner can read tasks. Only edit and owner can create, update, or delete them. The task's `project` value comes from `:projectId` in the URL, not from the body. On update, `project` is removed from the body so a caller cannot move a task onto another project.
 
 ```text
 POST /api/projects/:projectId/tasks
@@ -440,7 +451,7 @@ Night mode does not use the token. `ThemeProvider` reads and writes `localStorag
 
 `useFetch` refetches when the URL or the Authorization header text changes. It clears the previous `data` as soon as that key changes, so logout cannot keep showing the previous user while the next request is still out. A response that arrives after a newer request has started is ignored.
 
-`DashboardPage` keeps four `useApi` instances:
+`DashboardPage` keeps a separate `useApi` instance for each kind of write:
 
 | Instance | Used for |
 | --- | --- |
@@ -448,6 +459,8 @@ Night mode does not use the token. `ThemeProvider` reads and writes `localStorag
 | `projectDeleteApi` | Delete a project |
 | `taskApi` | Create and update a task |
 | `taskDeleteApi` | Delete a task |
+| `moveApi` | Save a drag onto another column |
+| `inviteApi` | Invite or remove a collaborator |
 
 Each instance has its own `error` and `loading`. The spinner on **Delete project** does not replace the spinner on **Create project**.
 
@@ -459,7 +472,7 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | --- | --- | --- | --- |
 | `LoginPage` | `login`, `error`, `submitting` | `login({ email, password })`, then `navigate("/dashboard")` | Form fields, `Alert`, `ThemeToggle` |
 | `RegisterPage` | `register`, `error`, `submitting` | `register({ username, email, password })` | Form fields, `Alert`, `ThemeToggle` |
-| `DashboardPage` | `token` | `useFetch` for both lists; `useApi` for every save and delete | `AppHeader`, `ProjectCard`, `TaskColumn`, `TaskCard`, `Modal`, forms |
+| `DashboardPage` | `token` | `useFetch` for both lists; `useApi` for every save, delete, drag, and invite | `AppHeader`, `ProjectCard`, `TaskBoard`, `Modal`, forms |
 | `ProjectPage` | The `:projectId` param | None | `AppHeader` and a back link. This is not the board |
 
 | Component | Receives | Sends upward | Does not receive |
@@ -467,8 +480,10 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | `ProjectForm` | `initialValues`, `submitLabel`, `submitting`, `error` | `onSubmit({ name, description })`, `onCancel` | Token, project id |
 | `TaskForm` | The same, plus a status field | `onSubmit({ title, description, status })` | Token, project id |
 | `ProjectCard` | `project`, `selected` | `onSelect(projectId)` | The task list |
-| `TaskColumn` | `status`, the tasks for that status | `onEdit`, `onDelete` | Other columns |
-| `TaskCard` | One `task` | `onEdit(task)`, `onDelete(task)` | The API |
+| `TaskBoard` | `tasks`, `canEdit` | `onMove`, `onEdit`, `onDelete` | The token |
+| `TaskColumn` | `status`, the tasks for that status, `canEdit` | `onEdit`, `onDelete` | Other columns |
+| `TaskCard` | One `task`, `canEdit` | `onEdit(task)`, `onDelete(task)`, drag listeners | The API |
+| `CollaboratorForm` | `collaborators`, `submitting`, `error` | `onInvite`, `onRemove` | The token |
 | `Modal` | `title`, `children` | `onClose` | Form state. Unmounting the modal resets the form |
 | `AppHeader` | `user` and `logout` from `useAuth()` | Calls `logout`. The theme button uses `useTheme()` | Projects or tasks |
 | `ProtectedRoute` | `isAuthenticated`, `loading` | Redirects guests to `/login` | — |
@@ -548,6 +563,8 @@ DOCUMENTATION.md             This document
 | Frontend | React 19, TypeScript, Vite 8 | Screens and client-side routing |
 | Routing | React Router 7 | `/login`, `/register`, `/dashboard`, `/projects/:projectId` |
 | Styling | Tailwind CSS 3.4 | Layout, light mode, night mode |
+| Motion | Motion | Card enter, exit, and drag overlay |
+| Drag and drop | dnd-kit | Moving a task between columns |
 | Font | Nunito | Loaded from Google Fonts |
 | Backend | Node.js, Express 5 | HTTP API |
 | Data | Mongoose 9, MongoDB Atlas | Users, projects, and tasks |
@@ -579,8 +596,10 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `name` | Required, trimmed |
 | `description` | Required, trimmed |
 | `user` | Required ObjectId reference to User. Set by the server from the token. A client cannot replace it on update |
+| `collaborators` | List of `{ user, permission }`. `permission` is `view` or `edit`. Only the owner can change this list, through the collaborator routes |
+| `access` | Not stored. Each response sets `owner`, `edit`, or `view` for the caller |
 
-A project list is always filtered with `{ user: req.user._id }`.
+`GET /api/projects` returns projects the caller owns and projects where the caller is a collaborator.
 
 ### Task
 
@@ -591,12 +610,13 @@ A project list is always filtered with `{ user: req.user._id }`.
 | `status` | `To Do`, `In Progress`, or `Done`. Default `To Do` |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
-A task has no owner field of its own. Ownership is the owner of its project.
+A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
 
 ### Relationships
 
 ```text
 User 1 ──── * Project 1 ──── * Task
+User * ──── * Project   (collaborators, view or edit)
 ```
 
 Deleting a project runs `Task.deleteMany({ project })` and then deletes the project. Deleting a user is not implemented, so projects are not removed when an account would be removed.
@@ -617,9 +637,12 @@ Deleting a project runs `Task.deleteMany({ project })` and then deletes the proj
 
 ### Authorization
 
-Project and task handlers compare `project.user` with `req.user._id`.
+`utils/access.js` reads the project and returns `owner`, `edit`, `view`, or nothing.
 
-- Another person's record: **403** with a message that names the action, for example `User is not authorized to update this task.`
+- **Owner** can do everything, including share, remove collaborators, and delete the project.
+- **Edit** can read and update the project, and can create, update, and delete its tasks. Edit cannot delete the project or change the invite list.
+- **View** can read the project and its tasks. View cannot change them.
+- A caller with no access: **403** with a message that names the action, for example `User is not authorized to update this task.`
 - Missing project or task: **404**.
 - A task whose `project` does not match `:projectId`: **404** `No task found with this id!`, including when the task exists under a different project.
 
@@ -731,7 +754,7 @@ Token required.
 
 ### Projects
 
-All of these require a token. The owner is always the caller. `user` in an update body is discarded.
+All of these require a token. Responses include `access` for the caller. `user`, `collaborators`, and `access` in a create or update body are discarded.
 
 #### POST `/api/projects`
 
@@ -746,33 +769,64 @@ All of these require a token. The owner is always the caller. `user` in an updat
 
 #### GET `/api/projects`
 
-**200** returns an array of the caller's projects. The array is empty when the caller has none. **500** on a database error.
+**200** returns projects the caller owns or is invited to. The array is empty when the caller has none. **500** on a database error.
 
 #### GET `/api/projects/:id`
 
 | Condition | Status | Message |
 | --- | --- | --- |
-| Found and owned | 200 | The project |
+| Owner, edit, or view | 200 | The project, including `access` and `collaborators` |
 | Missing | 404 | `No project found with this id!` |
-| Owned by someone else | 403 | `User is not authorized to view this project.` |
+| No access | 403 | `User is not authorized to view this project.` |
 
 #### PUT `/api/projects/:id`
 
-Body: `name` and `description`.
+Body: `name` and `description`. Owner and edit may call it. View may not.
 
 **200** returns the updated project. **404** and **403** use the messages `No project found with this id!` and `User is not authorized to update this project.`
 
 #### DELETE `/api/projects/:id`
 
-**200** `{ "message": "Project deleted!" }`.
+Owner only. **200** `{ "message": "Project deleted!" }`.
 
 Tasks with that `project` id are deleted first. **404** and **403** use `No project found with this id!` and `User is not authorized to delete this project.`
+
+#### POST `/api/projects/:id/collaborators`
+
+Owner only.
+
+```json
+{
+  "email": "ada@example.com",
+  "permission": "edit"
+}
+```
+
+`permission` is `view` or `edit`. The email must belong to a registered user, and it cannot be the owner's email. Inviting someone who is already a collaborator changes their permission.
+
+| Condition | Status | Message |
+| --- | --- | --- |
+| New collaborator | 201 | The project |
+| Permission changed | 200 | The project |
+| Caller is not the owner | 403 | `Only the project owner can invite collaborators.` |
+| Missing email | 400 | `Email is required.` |
+| Bad permission | 400 | `Permission must be view or edit.` |
+| Email is not registered | 404 | `No registered user with that email.` |
+| Email is the owner | 400 | `The owner is already on this project.` |
+
+#### DELETE `/api/projects/:id/collaborators/:userId`
+
+Owner only. **200** returns the project without that collaborator.
+
+**403** `Only the project owner can remove collaborators.`
+
+**404** `That person is not a collaborator on this project.`
 
 ### Tasks
 
 Task routes are registered before `/api/projects/:id`, so the word `tasks` is not treated as a project id.
 
-All of these require a token. The server checks that the caller owns the parent project. `project` in an update body is discarded.
+All of these require a token. The server checks the caller's access on the parent project. View can list tasks. Edit and owner can create, update, and delete them. `project` in an update body is discarded.
 
 #### POST `/api/projects/:projectId/tasks`
 
@@ -791,7 +845,7 @@ All of these require a token. The server checks that the caller owns the parent 
 | Condition | Status | Message |
 | --- | --- | --- |
 | Project missing | 404 | `No project found with this id!` |
-| Project owned by someone else | 403 | `User is not authorized to create a task for this project.` |
+| Caller cannot edit the project | 403 | `User is not authorized to create a task for this project.` |
 | Missing title or description, or a bad status | 400 | Mongoose validation error |
 
 #### GET `/api/projects/:projectId/tasks`
@@ -812,7 +866,7 @@ Body may include `title`, `description`, and `status`.
 | --- | --- | --- |
 | Task missing, or task belongs to another project id | 404 | `No task found with this id!` |
 | Parent project missing | 404 | `No project found with this id!` |
-| Caller does not own the parent | 403 | `User is not authorized to update this task.` |
+| Caller cannot edit the parent | 403 | `User is not authorized to update this task.` |
 | Validation failure | 400 | Mongoose validation error |
 
 #### DELETE `/api/projects/:projectId/tasks/:taskId`
@@ -829,7 +883,7 @@ Body may include `title`, `description`, and `status`.
 | 201 | User, project, or task created |
 | 400 | Validation failure, unknown email, or wrong password |
 | 401 | Missing, invalid, or expired token |
-| 403 | The record exists and belongs to another user |
+| 403 | The caller is not allowed to perform that action on the project |
 | 404 | The record does not exist, or a task is not under the given project |
 | 500 | Unexpected database error on project reads, project updates, project deletes, task lists, and task deletes. Task update errors return 400 |
 
@@ -1031,9 +1085,9 @@ Accounts and sample projects created during development are in the same database
 - There is no password reset.
 - There is no automated test suite.
 - Some database errors are returned as the raw error object.
-- Mongoose `findByIdAndUpdate` is called with `{ new: true }`. Current Mongoose warns that this option should be `returnDocument: 'after'`. Behavior is unchanged: the handler returns the updated document.
+- Task update still uses `findByIdAndUpdate` with `{ new: true }`. Current Mongoose warns that this option should be `returnDocument: 'after'`. Behavior is unchanged: the handler returns the updated document.
 - The free API cold-starts.
-- Collaboration and drag-and-drop are out of scope for 1.0.
+- An invite needs an account that already exists. There is no email message and no pending invite.
 
 ---
 
@@ -1041,8 +1095,6 @@ Accounts and sample projects created during development are in the same database
 
 These items were recorded as future work. They are not part of this delivery.
 
-- Invite other registered users to a project, with view or edit permission.
-- Drag a task from one column to another instead of editing its status.
 - Omit the password hash from login and register responses.
 - Password reset and email verification.
 - Remove an account and its projects and tasks.
@@ -1060,7 +1112,9 @@ These items were recorded as future work. They are not part of this delivery.
 | Live API | https://full-stack-mern-application-pro-tasker.onrender.com |
 | API health check | `GET /` returns the running message |
 | Auth, projects, and tasks | Implemented and checked against the live API |
-| Owner-only access | 401 without a token, 403 for another owner's record |
+| Access | Owner, edit, and view. 401 without a token, 403 without access |
+| Sharing | Owner invites a registered email as view or edit |
+| Drag and drop | Moving a card between columns saves the new status |
 | Light and night mode | Saved in the browser |
 | Desktop and phone layout | Columns fill a desktop window and stack on a narrow screen |
 | Refresh on `/dashboard` and `/login` | Rewrite to `index.html` |

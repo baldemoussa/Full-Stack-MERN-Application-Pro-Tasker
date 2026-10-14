@@ -4,6 +4,22 @@ export type UserRole = 'admin' | 'user'
 
 export type TaskStatus = 'To Do' | 'In Progress' | 'Done'
 
+export type ProjectAccess = 'owner' | 'edit' | 'view'
+
+export type CollaboratorPermission = 'view' | 'edit'
+
+export interface CollaboratorUser {
+  _id: string
+  username: string
+  email: string
+}
+
+export interface Collaborator {
+  _id: string
+  user: CollaboratorUser
+  permission: CollaboratorPermission
+}
+
 export interface User {
   _id: string
   username: string
@@ -19,6 +35,8 @@ export interface Project {
   name: string
   description: string
   user: string
+  collaborators: Collaborator[]
+  access: ProjectAccess
   createdAt: string
   updatedAt: string
 }
@@ -59,8 +77,8 @@ export interface ProjectBody {
 }
 
 export interface TaskBody {
-  title: string
-  description: string
+  title?: string
+  description?: string
   status?: TaskStatus
 }
 
@@ -141,6 +159,7 @@ export interface ProjectCardProps {
 
 export interface TaskCardProps {
   task: Task
+  canEdit: boolean
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
 }
@@ -148,8 +167,25 @@ export interface TaskCardProps {
 export interface TaskColumnProps {
   status: TaskStatus
   tasks: Task[]
+  canEdit: boolean
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+}
+
+export interface TaskBoardProps {
+  tasks: Task[]
+  canEdit: boolean
+  onMove: (task: Task, status: TaskStatus) => void
+  onEdit: (task: Task) => void
+  onDelete: (task: Task) => void
+}
+
+export interface CollaboratorFormProps {
+  collaborators: Collaborator[]
+  submitting: boolean
+  error: string | null
+  onInvite: (body: { email: string; permission: CollaboratorPermission }) => Promise<boolean>
+  onRemove: (userId: string) => void
 }
 
 export interface SpinnerProps {

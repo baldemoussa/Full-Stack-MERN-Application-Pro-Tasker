@@ -15,7 +15,22 @@ const projectSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    collaborators: {
+        type: [{
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true,
+            },
+            permission: {
+                type: String,
+                enum: ['view', 'edit'],
+                required: true,
+            },
+        }],
+        default: [],
+    },
 }, {
     timestamps: true
 });

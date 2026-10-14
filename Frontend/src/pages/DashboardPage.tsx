@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import Alert from "../components/Alert";
+import BoardOverview from "../components/BoardOverview";
 import AppHeader from "../components/AppHeader";
+import CollaboratorForm from "../components/CollaboratorForm";
 import Modal from "../components/Modal";
 import ProjectCard from "../components/ProjectCard";
 import ProjectForm from "../components/ProjectForm";
 import Spinner from "../components/Spinner";
-import TaskColumn from "../components/TaskColumn";
+import TaskBoard from "../components/TaskBoard";
 import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
-import type { ApiMessage, Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
+import type { ApiMessage, CollaboratorPermission, Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
 
-const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function DashboardPage() {
@@ -26,6 +27,8 @@ export default function DashboardPage() {
   const projectDeleteApi = useApi<ApiMessage>({ token });
   const taskApi = useApi<Task>({ token });
   const taskDeleteApi = useApi<ApiMessage>({ token });
+  const moveApi = useApi<Task>({ token });
+  const inviteApi = useApi<Project>({ token });
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -35,6 +38,7 @@ export default function DashboardPage() {
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const taskList = useFetch<Task[]>(
     token && selectedId ? `${API_URL}/api/projects/${selectedId}/tasks` : null,
     authHeaders(token)
@@ -171,6 +175,58 @@ export default function DashboardPage() {
     setTaskToDelete(null);
   }
 
+  async function handleMoveTask(task: Task, status: TaskStatus) {
+    if (!selectedId || task.status === status) {
+      return;
+    }
+
+    const previous = tasks;
+    setTasks((current) =>
+      current.map((item) => (item._id === task._id ? { ...item, status } : item))
+    );
+    const updated = await moveApi.put<TaskBody>(`/api/projects/${selectedId}/tasks/${task._id}`, {
+      status,
+    });
+    if (!updated) {
+      setTasks(previous);
+      return;
+    }
+    setTasks((current) => current.map((item) => (item._id === updated._id ? updated : item)));
+  }
+
+  function replaceProject(updated: Project) {
+    setProjects((current) =>
+      current.map((project) => (project._id === updated._id ? updated : project))
+    );
+  }
+
+  async function handleInvite(body: { email: string; permission: CollaboratorPermission }) {
+    if (!selectedId) {
+      return false;
+    }
+    const updated = await inviteApi.post<{ email: string; permission: CollaboratorPermission }>(
+      `/api/projects/${selectedId}/collaborators`,
+      body
+    );
+    if (!updated) {
+      return false;
+    }
+    replaceProject(updated);
+    return true;
+  }
+
+  async function handleRemoveCollaborator(userId: string) {
+    if (!selectedId) {
+      return;
+    }
+    const updated = await inviteApi.del<undefined>(
+      `/api/projects/${selectedId}/collaborators/${userId}`
+    );
+    if (updated) {
+      replaceProject(updated);
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AppHeader />
@@ -213,48 +269,67 @@ export default function DashboardPage() {
                 <div className="min-w-0">
                   <h2 className="break-words text-2xl font-semibold">{selectedProject.name}</h2>
                   <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
+                  {selectedProject.access === "view" && (
+                    <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+                      View only. Drag, edit, and delete stay with people who can edit.
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
-                    onClick={openEditProject}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
-                    onClick={() => setProjectDeleteOpen(true)}
-                  >
-                    Delete
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
-                    onClick={openCreateTask}
-                  >
-                    New task
-                  </button>
+                  {selectedProject.access === "owner" && (
+                    <button
+                      type="button"
+                      className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
+                      onClick={() => setShareOpen(true)}
+                    >
+                      Share
+                    </button>
+                  )}
+                  {selectedProject.access !== "view" && (
+                    <button
+                      type="button"
+                      className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
+                      onClick={openEditProject}
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {selectedProject.access === "owner" && (
+                    <button
+                      type="button"
+                      className="rounded border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
+                      onClick={() => setProjectDeleteOpen(true)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                  {selectedProject.access !== "view" && (
+                    <button
+                      type="button"
+                      className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
+                      onClick={openCreateTask}
+                    >
+                      New task
+                    </button>
+                  )}
                 </div>
               </div>
-              <Alert message={taskList.error} />
+              <Alert message={taskList.error ?? (shareOpen ? null : moveApi.error?.message ?? null)} />
               {taskList.loading && tasks.length === 0 ? (
                 <p className="mt-6">
                   <Spinner label="Loading tasks..." />
                 </p>
               ) : (
-                <div className="mt-6 grid flex-1 content-stretch gap-4 md:grid-cols-3">
-                  {STATUSES.map((status) => (
-                    <TaskColumn
-                      key={status}
-                      status={status}
-                      tasks={tasks.filter((task) => task.status === status)}
-                      onEdit={openEditTask}
-                      onDelete={setTaskToDelete}
-                    />
-                  ))}
-                </div>
+                <>
+                  <BoardOverview tasks={tasks} />
+                  <TaskBoard
+                    tasks={tasks}
+                    canEdit={selectedProject.access !== "view"}
+                    onMove={handleMoveTask}
+                    onEdit={openEditTask}
+                    onDelete={setTaskToDelete}
+                  />
+                </>
               )}
             </div>
           ) : (
@@ -321,6 +396,17 @@ export default function DashboardPage() {
             error={taskApi.error?.message ?? null}
             onSubmit={handleSaveTask}
             onCancel={() => setTaskFormOpen(false)}
+          />
+        </Modal>
+      )}
+      {shareOpen && selectedProject && (
+        <Modal title="Share project" onClose={() => setShareOpen(false)}>
+          <CollaboratorForm
+            collaborators={selectedProject.collaborators ?? []}
+            submitting={inviteApi.loading}
+            error={inviteApi.error?.message ?? null}
+            onInvite={handleInvite}
+            onRemove={handleRemoveCollaborator}
           />
         </Modal>
       )}

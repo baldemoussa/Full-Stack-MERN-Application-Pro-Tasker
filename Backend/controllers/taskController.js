@@ -1,4 +1,5 @@
 const { Project, Task } = require('../models');
+const { accessLevel, canEdit, canView } = require('../utils/access');
 
 async function createTask(req, res) {
   try {
@@ -6,7 +7,7 @@ async function createTask(req, res) {
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to create a task for this project.' });
     }
 
@@ -26,7 +27,7 @@ async function getAllTasks(req, res) {
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canView(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to view tasks for this project.' });
     }
 
@@ -48,7 +49,7 @@ async function updateTask(req, res) {
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to update this task.' });
     }
 
@@ -72,7 +73,7 @@ async function deleteTask(req, res) {
     if (!project) {
       return res.status(404).json({ message: 'No project found with this id!' });
     }
-    if (project.user.toString() !== req.user._id.toString()) {
+    if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to delete this task.' });
     }
 

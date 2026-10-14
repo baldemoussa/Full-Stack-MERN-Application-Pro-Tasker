@@ -7,6 +7,8 @@ router.use(authMiddleware);
 
 router.post('/', projectController.createProject);
 router.get('/', projectController.getAllProjects);
+router.post('/:id/collaborators', projectController.addCollaborator);
+router.delete('/:id/collaborators/:userId', projectController.removeCollaborator);
 router.post('/:projectId/tasks', taskController.createTask);
 router.get('/:projectId/tasks', taskController.getAllTasks);
 router.put('/:projectId/tasks/:taskId', taskController.updateTask);
