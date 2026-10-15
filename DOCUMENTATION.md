@@ -205,10 +205,10 @@ Person
 
 1. `LoginPage` or `RegisterPage` checks the form, then calls `login` or `register` from `useAuth()`.
 2. `AuthProvider` sends the body through `useApi` to `POST /api/users/login` or `POST /api/users/register`. No token is sent yet.
-3. The API checks the account, hashes a new password on register, and returns `{ token, user }`.
+3. The API checks the account, hashes a new password on register, and returns `{ token, user }`. `user` does not include the password hash.
 4. `AuthProvider` stores the token with `setToken` in `sessionStorage` and in React state.
 5. `useFetch` then calls `GET /api/users/me` with `Authorization: Bearer <token>`.
-6. The dashboard is shown only after `/me` returns the account. That response has no password.
+6. The dashboard is shown only after `/me` returns the account. That response also has no password.
 7. A refresh reads the same token from `sessionStorage` and repeats step 5. Closing the tab clears `sessionStorage`. **Log out** deletes the token in the browser. The API has no logout route.
 
 While `/me` is in progress, route guards show **Loading...**. The login and register buttons use a separate `submitting` flag, so the form stays on screen during the request.
@@ -287,7 +287,7 @@ flowchart TD
   request[JSON request] --> route{Which route?}
   route -->|register| hash[Hash password with bcrypt]
   hash --> users[(users)]
-  users --> token[Return JWT]
+  users --> token[Return JWT and user without password]
   route -->|login| findUser[Find user by email]
   findUser --> compare[Compare password to hash]
   compare --> token
@@ -366,7 +366,7 @@ POST /api/users/register
        -> User.create(req.body)
             -> pre-save hook hashes password with bcrypt (10 rounds)
        -> signToken(user)   payload { data: { username, email, _id } }, expires in 2h
-       -> 201 { token, user }
+       -> 201 { token, user }   user JSON omits password
 
 POST /api/users/login
   -> loginUser
@@ -375,7 +375,7 @@ POST /api/users/login
        -> user.isCorrectPassword(password)
             mismatch -> 400 "Wrong password!"
        -> signToken(user)
-       -> 200 { token, user }
+       -> 200 { token, user }   user JSON omits password
 ```
 
 No project or task is created at registration. The new user simply has an empty project list.
@@ -649,7 +649,7 @@ MongoDB collection names follow Mongoose defaults: `users`, `projects`, and `tas
 | `position` | Required, trimmed |
 | `profilePhoto` | Optional image address or image data. Empty by default |
 
-The password is hashed in a pre-save hook when the user is created or the password changes. Comparison uses `isCorrectPassword`.
+The password is hashed in a pre-save hook when the user is created or the password changes. Comparison uses `isCorrectPassword`. JSON for a user omits `password`, including login, register, and `GET /api/users/me`.
 
 ### Project
 
@@ -749,7 +749,7 @@ These values are not written in this document or in the repository. Atlas networ
 
 ### Client delivery notes on security
 
-- Login and register responses include the user document returned by Mongoose, which still contains the password hash. The application does not display that field. It loads `GET /api/users/me`, and that response excludes `password`. A later release should omit the hash from the login and register JSON as well.
+- Login and register return `{ token, user }` without the password hash. `GET /api/users/me` returns that same public profile. The client stores the token and loads `/me` before it shows the board.
 - There is no rate limit, account lockout, or email verification.
 - Logout does not revoke the token on the server.
 - Validation failures on some routes return the raw Mongoose error object with status **400**, not a single `{ message }` string.
@@ -801,7 +801,6 @@ No token.
     "position": "Project lead",
     "profilePhoto": "",
     "email": "ada@example.com",
-    "password": "<bcrypt hash>",
     "role": "user",
     "createdAt": "<date>",
     "updatedAt": "<date>"
@@ -822,7 +821,7 @@ No token.
 }
 ```
 
-**200** with the same `{ token, user }` shape as register.
+**200** with the same `{ token, user }` shape as register. `user` has no `password`.
 
 | Condition | Status | Body |
 | --- | --- | --- |
@@ -1271,7 +1270,6 @@ Accounts and sample projects created during development are in the same database
 
 ## 16. Known limitations
 
-- Login and register JSON includes the password hash. See Section 10.
 - `role` is stored and unused.
 - `/projects/:projectId` is not the task board.
 - There is no email password reset. A signed-in person can change their password.
@@ -1287,7 +1285,6 @@ Accounts and sample projects created during development are in the same database
 
 These items were recorded as future work. They are not part of this delivery.
 
-- Omit the password hash from login and register responses.
 - Email password reset and email verification.
 - Remove an account and its projects and tasks.
 - Automated API and interface tests.

@@ -3,6 +3,7 @@ const { User } = require('../models');
 const { signToken } = require('../utils/auth');
 
 // Creates the account and returns a token so the new person lands on the board.
+// `user` is the same public profile as GET /api/users/me. The hash stays in the database.
 async function registerUser(req, res) {
   try {
     const user = await User.create(req.body);
@@ -14,6 +15,7 @@ async function registerUser(req, res) {
 }
 
 // Checks the email, then the password. The two failures use different messages.
+// The returned user omits the password hash, matching GET /api/users/me.
 async function loginUser(req, res) {
   try {
     const user = await User.findOne({ email: req.body.email });

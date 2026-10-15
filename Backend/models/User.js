@@ -1,7 +1,12 @@
-// Account record. The password is hashed before save and is never returned by the profile routes.
+// Account record. The password is hashed before save and is omitted from JSON.
 const { Schema, model } = require('mongoose');
 const bcrypt = require('bcrypt');
- 
+
+function omitPassword(_doc, ret) {
+  delete ret.password;
+  return ret;
+}
+
 const userSchema = new Schema({
   username: {
     type: String,
@@ -51,7 +56,9 @@ const userSchema = new Schema({
     },
   },
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { transform: omitPassword },
+  toObject: { transform: omitPassword },
 });
  
 // hash user password

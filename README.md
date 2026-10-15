@@ -157,7 +157,7 @@ Send `Authorization: Bearer <token>` on every route except register and login. A
 | PUT | `/api/users/me` | `fullName`, `position`, `username`, `email`, `profilePhoto` |
 | PUT | `/api/users/me/password` | `currentPassword`, `newPassword` (at least 5 characters, and different from the current password) |
 
-Register and login return a token. The client then calls `/api/users/me` and uses that user, which does not include the password.
+Register and login return a token and the public profile. That profile does not include the password. The client then calls `/api/users/me` and uses that user.
 
 ### Projects
 
