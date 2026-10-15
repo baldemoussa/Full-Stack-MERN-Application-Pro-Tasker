@@ -40,7 +40,7 @@ function statusFromDrop(event: DragEndEvent, tasks: Task[]): TaskStatus | null {
   return tasks.find((task) => task._id === overId)?.status ?? null;
 }
 
-export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete }: TaskBoardProps) {
+export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete, onComment }: TaskBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -83,6 +83,7 @@ export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete }: 
             canEdit={canEdit}
             onEdit={onEdit}
             onDelete={onDelete}
+            onComment={onComment}
           />
         ))}
       </div>

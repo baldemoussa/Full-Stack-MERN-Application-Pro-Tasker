@@ -16,7 +16,7 @@ const headerTone: Record<TaskStatus, string> = {
   Done: "border-emerald-200 text-emerald-800 dark:border-emerald-900 dark:text-emerald-300",
 };
 
-export default function TaskColumn({ status, tasks, canEdit, onEdit, onDelete }: TaskColumnProps) {
+export default function TaskColumn({ status, tasks, canEdit, onEdit, onDelete, onComment }: TaskColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status, disabled: !canEdit });
   const reduceMotion = useReducedMotion();
 
@@ -40,7 +40,7 @@ export default function TaskColumn({ status, tasks, canEdit, onEdit, onDelete }:
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12, scale: 0.96 }}
                   transition={{ duration: reduceMotion ? 0 : 0.2 }}
                 >
-                  <TaskCard task={task} canEdit={canEdit} onEdit={onEdit} onDelete={onDelete} />
+                  <TaskCard task={task} canEdit={canEdit} onEdit={onEdit} onDelete={onDelete} onComment={onComment} />
                 </motion.li>
               ))
             )}

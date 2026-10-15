@@ -68,7 +68,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
 - Automated test suite. The backend `npm test` script is a placeholder.
-- Hosted file uploads, comments, due dates, assignees, or notifications. A profile photo is stored on the user document.
+- Hosted file uploads, due dates, assignees, or notifications. A profile photo is stored on the user document.
 
 ---
 
@@ -107,7 +107,7 @@ The left side of the dashboard is **My projects**.
 - Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
 - **Share** is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
 - **Edit** changes the name and description. Owners and people who can edit see this button. View-only people do not.
-- **Delete** asks for confirmation and is only shown to the owner. Confirming removes the project and every task on it.
+- **Delete** asks for confirmation and is only shown to the owner. Confirming removes the project, every task on it, and every comment on those tasks.
 
 ### Tasks
 
@@ -117,9 +117,10 @@ With a project selected, the board shows **To Do**, **In Progress**, and **Done*
 - An overview above the columns counts **Total tasks**, **To Do**, **In Progress**, and **Done**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
 - **Edit** on a card changes the title, description, and status.
-- **Delete** on a card asks for confirmation, then removes that task only.
+- **Comments** opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
+- **Delete** on a card asks for confirmation, then removes that task and its comments.
 
-Empty columns show **No tasks**. A view-only board explains that drag, edit, and delete stay with people who can edit.
+Empty columns show **No tasks**. A view-only board explains that comments are allowed, and that drag, edit, and delete stay with people who can edit.
 
 ### Appearance
 
@@ -202,6 +203,9 @@ erDiagram
   USER ||--o{ PROJECT : owns
   USER }o--o{ PROJECT : collaborates
   PROJECT ||--o{ TASK : contains
+  TASK ||--o{ COMMENT : has
+  USER ||--o{ COMMENT : writes
+  COMMENT ||--o{ COMMENT : replies
   USER {
     string username
     string fullName
@@ -221,6 +225,12 @@ erDiagram
     string description
     string status
     ObjectId project FK
+  }
+  COMMENT {
+    string text
+    ObjectId task FK
+    ObjectId user FK
+    ObjectId parent FK
   }
 ```
 
@@ -618,14 +628,27 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 
 A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
 
+### Comment
+
+| Field | Rules |
+| --- | --- |
+| `text` | Required, trimmed, at most 1000 characters |
+| `task` | Required ObjectId reference to Task. Set from the URL |
+| `user` | Required ObjectId reference to User. Set from the token |
+| `parent` | Optional ObjectId reference to a comment on the same task. Empty for a comment on the task. A reply's parent must itself have no parent |
+
+Anyone who can view the project can read and write comments. The author can delete their own comment. The project owner can delete any comment on the project. Deleting a comment also deletes replies whose `parent` is that comment.
+
 ### Relationships
 
 ```text
-User 1 ──── * Project 1 ──── * Task
+User 1 ──── * Project 1 ──── * Task 1 ──── * Comment
 User * ──── * Project   (collaborators, view or edit)
+User 1 ──── * Comment
+Comment 1 ──── * Comment   (replies)
 ```
 
-Deleting a project runs `Task.deleteMany({ project })` and then deletes the project. Deleting a user is not implemented, so projects are not removed when an account would be removed.
+Deleting a project deletes its tasks and the comments on those tasks, then deletes the project. Deleting a task deletes its comments. Deleting a user is not implemented, so projects are not removed when an account would be removed.
 
 ---
 
@@ -883,16 +906,55 @@ Body may include `title`, `description`, and `status`.
 
 #### DELETE `/api/projects/:projectId/tasks/:taskId`
 
-**200** `{ "message": "Task deleted!" }`.
+**200** `{ "message": "Task deleted!" }`. The task's comments are deleted with it.
 
 **404** uses the same task and project messages as update. **403** is `User is not authorized to delete this task.`
+
+### Comments
+
+Comment routes sit under a task. Anyone who can view the project can list and create comments. The author, and the project owner, can delete a comment.
+
+#### GET `/api/projects/:projectId/tasks/:taskId/comments`
+
+**200** returns the task's comments, oldest first. Each comment includes the author fields `username`, `fullName`, `position`, and `profilePhoto`. `parent` is `null` on a comment written on the task, or the id of that comment when the row is a reply.
+
+**404** `No task found with this id!` when the task is missing or belongs to another project.
+
+**403** `User is not authorized to view this task.`
+
+#### POST `/api/projects/:projectId/tasks/:taskId/comments`
+
+```json
+{
+  "text": "Looks ready for review.",
+  "parent": "<comment id, omit for a comment on the task>"
+}
+```
+
+**201** returns the created comment with the author filled in.
+
+| Condition | Status | Message |
+| --- | --- | --- |
+| Task missing, or task belongs to another project | 404 | `No task found with this id!` |
+| Caller cannot view the project | 403 | `User is not authorized to view this task.` |
+| Empty text | 400 | `Comment text is required.` |
+| `parent` is missing or belongs to another task | 404 | `No comment found with this id!` |
+| `parent` is itself a reply | 400 | `A reply cannot have its own replies.` |
+
+#### DELETE `/api/projects/:projectId/tasks/:taskId/comments/:commentId`
+
+**200** `{ "message": "Comment deleted!" }`. Replies of that comment are deleted too.
+
+**403** `User is not authorized to delete this comment.`
+
+**404** `No comment found with this id!` when the comment is missing or belongs to another task.
 
 ### Status codes used
 
 | Code | Meaning in this API |
 | --- | --- |
 | 200 | Read, update, delete, login, or health check succeeded |
-| 201 | User, project, or task created |
+| 201 | User, project, task, or comment created |
 | 400 | Validation failure, unknown email, or wrong password |
 | 401 | Missing, invalid, or expired token |
 | 403 | The caller is not allowed to perform that action on the project |

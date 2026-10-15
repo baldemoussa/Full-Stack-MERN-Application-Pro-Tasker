@@ -38,10 +38,11 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours.
 - Create, read, update, and delete projects.
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
-- Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board.
+- Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board and add comments.
+- Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
 - An overview counts Total, To Do, In Progress, and Done for the open project.
 - Drag a card onto another column. The new status is saved. Edit still changes status too.
-- Deleting a project also deletes that project's tasks. Only the owner can delete a project.
+- Deleting a project also deletes that project's tasks and comments. Only the owner can delete a project.
 - Light mode and night mode. The choice is saved in `localStorage`.
 
 ## Tech stack
@@ -156,7 +157,7 @@ Register and login return a token. The client then calls `/api/users/me` and use
 | POST | `/api/projects/:id/collaborators` | `email`, `permission` (`view` or `edit`) |
 | DELETE | `/api/projects/:id/collaborators/:userId` | — |
 
-The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, or delete the project. Delete also removes every task whose `project` is that id.
+The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, or delete the project. Delete also removes every task whose `project` is that id, and the comments on those tasks.
 
 ### Tasks
 
@@ -166,8 +167,11 @@ The owner is stored as `user`. The client cannot change that field or the collab
 | GET | `/api/projects/:projectId/tasks` | — |
 | PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status` |
 | DELETE | `/api/projects/:projectId/tasks/:taskId` | — |
+| GET | `/api/projects/:projectId/tasks/:taskId/comments` | — |
+| POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
+| DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
 
-`status` is `To Do`, `In Progress`, or `Done`. It defaults to `To Do`. Update and delete return **404** when the task does not belong to `:projectId`.
+`status` is `To Do`, `In Progress`, or `Done`. It defaults to `To Do`. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
 
 ## How a request moves
 

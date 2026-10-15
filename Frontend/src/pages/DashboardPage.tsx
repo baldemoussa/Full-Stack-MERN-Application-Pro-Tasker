@@ -8,6 +8,7 @@ import ProjectCard from "../components/ProjectCard";
 import ProjectForm from "../components/ProjectForm";
 import Spinner from "../components/Spinner";
 import TaskBoard from "../components/TaskBoard";
+import TaskComments from "../components/TaskComments";
 import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
@@ -38,6 +39,7 @@ export default function DashboardPage() {
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [commentTask, setCommentTask] = useState<Task | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const taskList = useFetch<Task[]>(
     token && selectedId ? `${API_URL}/api/projects/${selectedId}/tasks` : null,
@@ -271,7 +273,7 @@ export default function DashboardPage() {
                   <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
                   {selectedProject.access === "view" && (
                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
-                      View only. Drag, edit, and delete stay with people who can edit.
+                      View only. You can comment. Drag, edit, and delete stay with people who can edit.
                     </p>
                   )}
                 </div>
@@ -328,6 +330,7 @@ export default function DashboardPage() {
                     onMove={handleMoveTask}
                     onEdit={openEditTask}
                     onDelete={setTaskToDelete}
+                    onComment={setCommentTask}
                   />
                 </>
               )}
@@ -356,7 +359,7 @@ export default function DashboardPage() {
       )}
       {projectDeleteOpen && selectedProject && (
         <Modal title="Delete project" onClose={() => setProjectDeleteOpen(false)}>
-          <p>Delete {selectedProject.name}? Its tasks will be removed too.</p>
+          <p>Delete {selectedProject.name}? Its tasks and comments will be removed too.</p>
           <Alert message={projectDeleteApi.error?.message ?? null} />
           <div className="mt-4 flex justify-end gap-2">
             <button
@@ -407,6 +410,16 @@ export default function DashboardPage() {
             error={inviteApi.error?.message ?? null}
             onInvite={handleInvite}
             onRemove={handleRemoveCollaborator}
+          />
+        </Modal>
+      )}
+      {commentTask && selectedProject && (
+        <Modal title={commentTask.title} onClose={() => setCommentTask(null)}>
+          <TaskComments
+            key={commentTask._id}
+            projectId={selectedProject._id}
+            taskId={commentTask._id}
+            canModerate={selectedProject.access === "owner"}
           />
         </Modal>
       )}

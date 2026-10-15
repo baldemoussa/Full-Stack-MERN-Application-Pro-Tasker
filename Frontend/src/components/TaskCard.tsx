@@ -11,7 +11,7 @@ export function TaskCardFace({ task }: { task: Task }) {
   );
 }
 
-export default function TaskCard({ task, canEdit, onEdit, onDelete }: TaskCardProps) {
+export default function TaskCard({ task, canEdit, onEdit, onDelete, onComment }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task._id,
     disabled: !canEdit,
@@ -33,20 +33,25 @@ export default function TaskCard({ task, canEdit, onEdit, onDelete }: TaskCardPr
       {...(canEdit ? listeners : {})}
     >
       <TaskCardFace task={task} />
-      {canEdit && (
-        <div
-          className="mt-3 flex gap-2 border-t border-stone-100 pt-3 dark:border-stone-700"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onEdit(task)}>
-            Edit
-          </button>
-          <button type="button" className="rounded px-2 py-1 text-sm text-red-700 dark:text-red-300" onClick={() => onDelete(task)}>
-            Delete
-          </button>
-        </div>
-      )}
+      <div
+        className="mt-3 flex gap-2 border-t border-stone-100 pt-3 dark:border-stone-700"
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onComment(task)}>
+          Comments
+        </button>
+        {canEdit && (
+          <>
+            <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onEdit(task)}>
+              Edit
+            </button>
+            <button type="button" className="rounded px-2 py-1 text-sm text-red-700 dark:text-red-300" onClick={() => onDelete(task)}>
+              Delete
+            </button>
+          </>
+        )}
+      </div>
     </article>
   );
 }

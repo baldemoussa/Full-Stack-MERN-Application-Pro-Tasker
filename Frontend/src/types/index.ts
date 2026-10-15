@@ -57,6 +57,16 @@ export interface Task {
   updatedAt: string
 }
 
+export interface Comment {
+  _id: string
+  text: string
+  task: string
+  parent: string | null
+  user: CollaboratorUser
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AuthResponse {
   token: string
   user: Omit<User, 'password'>
@@ -171,6 +181,7 @@ export interface TaskCardProps {
   canEdit: boolean
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  onComment: (task: Task) => void
 }
 
 export interface TaskColumnProps {
@@ -179,6 +190,7 @@ export interface TaskColumnProps {
   canEdit: boolean
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  onComment: (task: Task) => void
 }
 
 export interface TaskBoardProps {
@@ -187,6 +199,7 @@ export interface TaskBoardProps {
   onMove: (task: Task, status: TaskStatus) => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  onComment: (task: Task) => void
 }
 
 export interface CollaboratorFormProps {

@@ -1,4 +1,4 @@
-const { Project, Task, User } = require('../models');
+const { Comment, Project, Task, User } = require('../models');
 const { accessLevel, canEdit, canView, idOf, presentProject } = require('../utils/access');
 
 const collaboratorFields = 'username email fullName position profilePhoto';
@@ -90,6 +90,8 @@ async function deleteProject(req, res) {
     if (accessLevel(project, req.user._id) !== 'owner') {
       return res.status(403).json({ message: 'User is not authorized to delete this project.' });
     }
+    const tasks = await Task.find({ project: project._id }).select('_id');
+    await Comment.deleteMany({ task: { $in: tasks.map((task) => task._id) } });
     await Task.deleteMany({ project: project._id });
     await Project.findByIdAndDelete(req.params.id);
     res.json({ message: 'Project deleted!' });

@@ -1,4 +1,4 @@
-const { Project, Task } = require('../models');
+const { Comment, Project, Task } = require('../models');
 const { accessLevel, canEdit, canView } = require('../utils/access');
 
 async function createTask(req, res) {
@@ -77,6 +77,7 @@ async function deleteTask(req, res) {
       return res.status(403).json({ message: 'User is not authorized to delete this task.' });
     }
 
+    await Comment.deleteMany({ task: task._id });
     await Task.findByIdAndDelete(req.params.taskId);
     res.json({ message: 'Task deleted!' });
   } catch (err) {
