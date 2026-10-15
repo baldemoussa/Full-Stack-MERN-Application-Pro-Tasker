@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "motion/react";
-import type { Task } from "../types";
+import type { Project, Task } from "../types";
+import ProfileAvatar from "./ProfileAvatar";
 
 function count(tasks: Task[], status: Task["status"]) {
   return tasks.filter((task) => task.status === status).length;
@@ -43,12 +44,40 @@ const cards = [
   },
 ];
 
-export default function BoardOverview({ tasks }: { tasks: Task[] }) {
+export default function BoardOverview({ tasks, project }: { tasks: Task[]; project: Project }) {
   const reduceMotion = useReducedMotion();
+  const ownerName = project.user?.fullName || project.user?.username || "Owner";
+  const contributors = project.collaborators?.length ?? 0;
 
   return (
     <section className="mt-6">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">Overview</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <motion.div
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.3 }}
+          className="flex items-center gap-3 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-teal-100 p-4 shadow-sm dark:border-teal-900 dark:from-teal-950 dark:to-teal-900"
+        >
+          <ProfileAvatar name={ownerName} photo={project.user?.profilePhoto} className="h-12 w-12 text-sm" />
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-teal-800 dark:text-teal-300">Owner</span>
+            <span className="mt-1 block truncate text-lg font-black text-teal-950 dark:text-teal-50">{ownerName}</span>
+            {project.user?.position && (
+              <span className="block truncate text-sm text-teal-800 dark:text-teal-200">{project.user.position}</span>
+            )}
+          </span>
+        </motion.div>
+        <motion.div
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.3, delay: reduceMotion ? 0 : 0.08 }}
+          className="flex flex-col items-center justify-center rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-700 dark:bg-stone-900"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">Contributors</span>
+          <span className="mt-1 text-3xl font-black text-stone-800 dark:text-stone-100">{contributors}</span>
+        </motion.div>
+      </div>
       <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((card, index) => (
           <motion.div

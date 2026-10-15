@@ -40,7 +40,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
 - Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board and add comments.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
-- An overview counts Total, To Do, In Progress, Done, and Hold for the open project.
+- An overview shows the owner, the number of invited contributors, and counts Total, To Do, In Progress, Done, and Hold for the open project.
 - Drag a card onto another column. The new status is saved. Edit still changes status too.
 - Deleting a project also deletes that project's tasks and comments. Only the owner can delete a project.
 - Light mode and night mode. The choice is saved in `localStorage`.

@@ -114,7 +114,7 @@ The left side of the dashboard is **My projects**.
 With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
 
 - **New task** asks for a title, a description, and a status. The status starts as **To Do**. View-only people do not see this button.
-- An overview above the columns counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
+- An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
 - **Edit** on a card changes the title, description, and status.
 - **Comments** opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.

@@ -8,7 +8,9 @@ function escapeRegex(value) {
 }
 
 async function loadProject(id) {
-  return Project.findById(id).populate('collaborators.user', collaboratorFields);
+  return Project.findById(id)
+    .populate('user', collaboratorFields)
+    .populate('collaborators.user', collaboratorFields);
 }
 
 function writableFields(body) {
@@ -40,7 +42,9 @@ async function getAllProjects(req, res) {
         { user: req.user._id },
         { 'collaborators.user': req.user._id },
       ],
-    }).populate('collaborators.user', collaboratorFields);
+    })
+      .populate('user', collaboratorFields)
+      .populate('collaborators.user', collaboratorFields);
 
     res.json(projects.map((project) => presentProject(project, req.user._id)));
   } catch (err) {

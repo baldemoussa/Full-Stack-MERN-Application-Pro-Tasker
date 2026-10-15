@@ -40,7 +40,7 @@ export interface Project {
   _id: string
   name: string
   description: string
-  user: string
+  user: CollaboratorUser
   collaborators: Collaborator[]
   access: ProjectAccess
   createdAt: string

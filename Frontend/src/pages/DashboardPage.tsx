@@ -323,7 +323,7 @@ export default function DashboardPage() {
                 </p>
               ) : (
                 <>
-                  <BoardOverview tasks={tasks} />
+                  <BoardOverview tasks={tasks} project={selectedProject} />
                   <TaskBoard
                     tasks={tasks}
                     canEdit={selectedProject.access !== "view"}
