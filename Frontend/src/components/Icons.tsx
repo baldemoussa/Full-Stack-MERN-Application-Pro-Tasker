@@ -1,3 +1,4 @@
+// Small line icons and the square icon button used for project and task actions.
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type IconProps = { className?: string };

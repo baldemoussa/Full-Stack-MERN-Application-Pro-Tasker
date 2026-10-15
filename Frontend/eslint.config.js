@@ -1,3 +1,4 @@
+// ESLint for the React TypeScript app. Generated files and dist stay out of the check.
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

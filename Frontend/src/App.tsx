@@ -1,3 +1,4 @@
+// Route table. Guests can open login and register. The board and analytics require a signed-in session.
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Footer from "./components/Footer";
 import GuestRoute from "./components/GuestRoute";

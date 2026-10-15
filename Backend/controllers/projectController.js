@@ -1,3 +1,4 @@
+// Project CRUD, invites, and close, archive, and reopen. Only the owner changes membership or project status.
 const { Comment, Project, Task, User } = require('../models');
 const { accessLevel, canEdit, canView, idOf, inactiveMessage, isActive, presentProject } = require('../utils/access');
 
@@ -13,6 +14,7 @@ async function loadProject(id) {
     .populate('collaborators.user', collaboratorFields);
 }
 
+// Name and description only. Owner, collaborators, access, and status have their own routes.
 function writableFields(body) {
   const updates = { ...body };
   delete updates.user;
@@ -90,6 +92,7 @@ async function updateProject(req, res) {
   }
 }
 
+// Removes the project, its tasks, and the comments on those tasks.
 async function deleteProject(req, res) {
   try {
     const project = await Project.findById(req.params.id);
@@ -156,6 +159,7 @@ async function addCollaborator(req, res) {
   }
 }
 
+// Taking someone off the project also takes them off every task assignment.
 async function removeCollaborator(req, res) {
   try {
     const project = await loadProject(req.params.id);

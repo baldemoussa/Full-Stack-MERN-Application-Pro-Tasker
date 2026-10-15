@@ -1,3 +1,4 @@
+// Copyright line and the author's LinkedIn link. It sits under every page.
 export default function Footer() {
   const year = new Date().getFullYear();
 

@@ -1,3 +1,4 @@
+// Round photo, or initials when the person has no photo.
 export default function ProfileAvatar({
   name,
   photo,

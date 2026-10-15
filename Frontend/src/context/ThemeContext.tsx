@@ -1,3 +1,4 @@
+// The light and night mode contract. ThemeProvider fills it in.
 import { createContext, useContext } from "react";
 import type { ThemeContextType } from "../types";
 

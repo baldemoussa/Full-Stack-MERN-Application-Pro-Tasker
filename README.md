@@ -17,13 +17,23 @@ Both services deploy from the `main` branch. The application is the React site. 
 
 ## Screenshots
 
-### Project board
+### Dashboard
 
-![Project board with To Do, In Progress, Done, and Hold columns](docs/screenshots/dashboard.png)
+![Project list, project actions, and the overview counts](docs/screenshots/dashboard.png)
+
+### Board
+
+![To Do and In Progress columns, with priority, a due date, and an overdue card](docs/screenshots/board.png)
+
+### Analytics
+
+![Status pie chart with a quarter of the tasks in each column](docs/screenshots/analytics.png)
+
+![Tasks added over the last 14 days](docs/screenshots/analytics-trend.png)
 
 ### Night mode
 
-![The same board in night mode](docs/screenshots/dashboard-night.png)
+![The dashboard in night mode](docs/screenshots/dashboard-night.png)
 
 ### Log in
 
@@ -60,8 +70,8 @@ Both services deploy from the `main` branch. The application is the React site. 
 ```text
 Backend/
   config/connection.js      MongoDB connection
-  controllers/              User, project, and task handlers
-  models/                   User, Project, Task
+  controllers/              User, project, task, and comment handlers
+  models/                   User, Project, Task, Comment
   routes/api/               /api/users and /api/projects
   utils/auth.js             Sign a token and require one on protected routes
   utils/access.js           Owner, edit, and view checks
@@ -70,7 +80,7 @@ Frontend/
   src/components/           Forms, cards, drag-and-drop board, share form, modal, theme toggle
   src/context/              Auth and theme contracts
   src/hooks/                useApi (POST, PUT, DELETE) and useFetch (GET)
-  src/pages/                Login, register, dashboard
+  src/pages/                Login, register, dashboard, analytics
   src/providers/            Session state and light/night mode
   src/types/index.ts        Shared TypeScript types
 ```

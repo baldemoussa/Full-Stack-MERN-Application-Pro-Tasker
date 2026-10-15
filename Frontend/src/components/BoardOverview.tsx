@@ -1,3 +1,4 @@
+// Owner, contributor count, and task counts for the project that is open.
 import { motion, useReducedMotion } from "motion/react";
 import type { Project, Task } from "../types";
 import ProfileAvatar from "./ProfileAvatar";

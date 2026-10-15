@@ -1,3 +1,4 @@
+// The comment thread for one task, including one level of replies.
 import { useEffect, useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import ProfileAvatar from "./ProfileAvatar";

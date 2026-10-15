@@ -1,3 +1,4 @@
+// Collects a project name and description for create and edit.
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import Spinner from "./Spinner";

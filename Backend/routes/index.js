@@ -1,3 +1,4 @@
+// Mounts the API routers and answers GET / so a host can see that the service is up.
 const router = require('express').Router();
 const apiRoutes = require('./api');
 

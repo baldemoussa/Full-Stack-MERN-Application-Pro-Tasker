@@ -1,3 +1,4 @@
+// The status pie chart and the 14-day trend line.
 import type { TrendPoint } from "../utils/projectAnalytics";
 
 export interface PieSlice {

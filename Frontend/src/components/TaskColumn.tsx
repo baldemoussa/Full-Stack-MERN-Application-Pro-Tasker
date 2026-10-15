@@ -1,3 +1,4 @@
+// One status column. It accepts a dropped card and lists the tasks that belong in that status.
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -31,7 +32,9 @@ export default function TaskColumn({ status, tasks, canEdit, onEdit, onDelete, o
         <SortableContext id={status} items={tasks.map((task) => task._id)} strategy={verticalListSortingStrategy}>
           <AnimatePresence initial={false} mode="popLayout">
             {tasks.length === 0 ? (
-              <li className="text-sm text-stone-500 dark:text-stone-400">No tasks</li>
+              <li className="rounded-xl border border-dashed border-stone-300 px-3 py-8 text-center text-sm text-stone-500 dark:border-stone-600 dark:text-stone-400">
+                {canEdit ? "Drop a task here" : "No tasks"}
+              </li>
             ) : (
               tasks.map((task) => (
                 <motion.li

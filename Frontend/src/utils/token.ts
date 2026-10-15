@@ -1,3 +1,4 @@
+// Reads and writes the session token. Closing the tab clears sessionStorage.
 const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY;
 
 if (!TOKEN_KEY) {

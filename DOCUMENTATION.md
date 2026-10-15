@@ -128,11 +128,43 @@ With a project selected, the board shows four columns in one row: **To Do**, **I
 - The comment icon opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
 - **Delete** on a card asks for confirmation, then removes that task and its comments.
 
-Empty columns show **No tasks**. A view-only board explains that comments are allowed, and that drag, edit, and delete stay with people who can edit.
+An empty column on a board you can edit says **Drop a task here**. A view-only column says **No tasks**. A view-only board explains that comments are allowed, and that drag, edit, and delete stay with people who can edit. An overdue card has a rose border.
 
 ### Appearance
 
 The sun icon switches to night mode. The moon icon switches to light mode. The choice is kept in this browser under the name `pro-tasker-theme` and applies on the next visit, including after logout.
+
+The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. Fields and cards are rounded. The header stays at the top and the product name returns to the dashboard. Columns stay in one row of four and scroll sideways when the window is narrow. An empty column you can edit says **Drop a task here**. An overdue card has a rose border.
+
+### Screenshots
+
+These pictures are from a local session. The live application uses the same screens.
+
+#### Dashboard
+
+![Project list, project actions, and the overview counts](docs/screenshots/dashboard.png)
+
+#### Board
+
+![To Do and In Progress columns, with priority, a due date, and an overdue card](docs/screenshots/board.png)
+
+#### Analytics
+
+![Status pie chart with a quarter of the tasks in each column](docs/screenshots/analytics.png)
+
+![Tasks added over the last 14 days](docs/screenshots/analytics-trend.png)
+
+#### Night mode
+
+![The dashboard in night mode](docs/screenshots/dashboard-night.png)
+
+#### Log in
+
+![Log in screen](docs/screenshots/login.png)
+
+#### Create an account
+
+![Registration screen](docs/screenshots/register.png)
 
 ### Pages
 
@@ -1090,7 +1122,7 @@ From the `Frontend` directory:
 
 `ThemeProvider` wraps the application in a `dark` class when night mode is on. Tailwind is configured with `darkMode: "class"`, so night styles apply to descendants of that class. The preference is `localStorage` key `pro-tasker-theme`, with values `dark` or `light`.
 
-The page background is stone. Columns are white, amber, and green, and they stretch to the bottom of a desktop window. On a narrow screen the project list is height-limited, the actions stack under the title, and the columns stack vertically.
+The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. Columns stay in one row of four and scroll sideways when the window is narrow, so a card does not get crushed. An empty column says **Drop a task here**. An overdue card has a rose border. On a narrow screen the project list is height-limited and the actions stack under the title.
 
 ---
 
@@ -1272,7 +1304,7 @@ These items were recorded as future work. They are not part of this delivery.
 | Sharing | Owner invites a registered email as view or edit |
 | Drag and drop | Moving a card between columns saves the new status |
 | Light and night mode | Saved in the browser |
-| Desktop and phone layout | Columns fill a desktop window and stack on a narrow screen |
+| Desktop and phone layout | Four columns stay in one row and scroll sideways on a narrow window |
 | Refresh on `/dashboard` and `/login` | Rewrite to `index.html` |
 | This document | `DOCUMENTATION.md` |
 | Secrets in the repository | None. `.env` files stay on the machine and on Render |

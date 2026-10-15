@@ -1,3 +1,4 @@
+// Formats a due date and decides when an open task is overdue.
 import type { Task } from "../types";
 
 export function localTodayKey() {

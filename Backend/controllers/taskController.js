@@ -1,8 +1,10 @@
+// Task CRUD for one project. Assignees must already belong to the project. A drag sends status only and leaves the other fields alone.
 const { Comment, Project, Task } = require('../models');
 const { accessLevel, canEdit, canView, idOf, inactiveMessage, isActive } = require('../utils/access');
 
 const assigneeFields = 'username email fullName position profilePhoto';
 
+// Older tasks have no priority. The board treats those as Medium.
 function presentTask(task) {
   const plain = task.toObject();
   if (!plain.priority) {
@@ -13,6 +15,7 @@ function presentTask(task) {
   return plain;
 }
 
+// undefined means "do not change it", which is what a drag-and-drop update does.
 function readDueDate(value) {
   if (value === undefined) {
     return { skip: true };
@@ -37,6 +40,7 @@ function memberIds(project) {
   return [idOf(project.user), ...(project.collaborators || []).map((entry) => idOf(entry.user))].filter(Boolean);
 }
 
+// Only the owner and current collaborators can be assigned. Duplicates are dropped.
 function assigneeList(value, project) {
   if (!Array.isArray(value)) {
     return { error: 'Assignees must be a list of people on this project.' };

@@ -1,3 +1,4 @@
+// Keeps the token, loads the signed-in profile, and replaces that profile immediately after an edit.
 import { useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";

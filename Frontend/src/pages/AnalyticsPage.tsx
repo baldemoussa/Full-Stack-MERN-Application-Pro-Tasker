@@ -1,3 +1,4 @@
+// Charts and counts for one project. The project menu switches the address.
 import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";

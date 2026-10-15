@@ -1,3 +1,4 @@
+// Starts the API: loads environment variables, allows the React origin, and parses JSON bodies up to 1mb so a profile photo can be saved.
 require('dotenv').config();
 
 const express = require('express');

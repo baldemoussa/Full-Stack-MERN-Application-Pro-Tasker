@@ -1,3 +1,4 @@
+// Signs a JWT for two hours and reads it from the Authorization header. req.user is the payload data, not the full user document.
 const jwt = require('jsonwebtoken');
  
 const secret = process.env.JWT_SECRET;

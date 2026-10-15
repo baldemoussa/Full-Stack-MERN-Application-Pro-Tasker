@@ -1,3 +1,4 @@
+// One draggable card. The action icons do not start a drag. An overdue card has a rose border.
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskCardProps, TaskPriority } from "../types";
@@ -63,9 +64,9 @@ export default function TaskCard({ task, canEdit, onEdit, onDelete, onComment }:
         transition,
         opacity: isDragging ? 0.4 : 1,
       }}
-      className={`rounded-xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-700 dark:bg-stone-800 ${
-        canEdit ? "cursor-grab active:cursor-grabbing" : ""
-      }`}
+      className={`rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-stone-800 ${
+        isOverdue(task) ? "border-rose-300 dark:border-rose-800" : "border-stone-200 dark:border-stone-700"
+      } ${canEdit ? "cursor-grab active:cursor-grabbing" : ""}`}
       {...(canEdit ? attributes : {})}
       {...(canEdit ? listeners : {})}
     >

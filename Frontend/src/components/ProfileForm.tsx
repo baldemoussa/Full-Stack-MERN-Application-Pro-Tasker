@@ -1,3 +1,4 @@
+// Edits the signed-in person's name, position, username, email, and photo.
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import ProfileAvatar from "./ProfileAvatar";

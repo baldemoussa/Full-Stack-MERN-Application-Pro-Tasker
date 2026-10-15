@@ -1,3 +1,4 @@
+// A note on a task. parent is empty for a top-level comment and points at that comment for a reply.
 const { Schema, model } = require('mongoose');
 
 const commentSchema = new Schema({

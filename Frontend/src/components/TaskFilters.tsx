@@ -1,3 +1,4 @@
+// Search box and status and priority menus above the board.
 import type { TaskPriority, TaskStatus } from "../types";
 import { TASK_PRIORITIES } from "../utils/taskFilters";
 

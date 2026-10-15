@@ -1,3 +1,4 @@
+// Creates an account, including the optional profile photo, then opens the board.
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Alert from "../components/Alert";
@@ -56,9 +57,13 @@ export default function RegisterPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center p-4 sm:p-6">
-      <div className="w-full rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-900">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="min-w-0 text-xl font-semibold sm:text-2xl">Create an account</h1>
+      <div className="w-full rounded-2xl border border-stone-200 bg-white p-6 shadow-lg dark:border-stone-700 dark:bg-stone-900">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">Pro-Tasker</p>
+          <h1 className="mt-1 text-2xl font-semibold">Create an account</h1>
+          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Start a board, then invite the people who will work on it.</p>
+        </div>
         <ThemeToggle />
       </div>
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -144,7 +149,7 @@ export default function RegisterPage() {
         </label>
         <Alert message={formError ?? error} />
         <button
-          className="w-full rounded bg-teal-800 px-3 py-2 text-white disabled:opacity-60"
+          className="w-full rounded-lg bg-teal-800 px-3 py-2 font-medium text-white disabled:opacity-60"
           type="submit"
           disabled={submitting || readingPhoto}
         >

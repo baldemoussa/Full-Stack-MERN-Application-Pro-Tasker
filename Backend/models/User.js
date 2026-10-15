@@ -1,3 +1,4 @@
+// Account record. The password is hashed before save and is never returned by the profile routes.
 const { Schema, model } = require('mongoose');
 const bcrypt = require('bcrypt');
  

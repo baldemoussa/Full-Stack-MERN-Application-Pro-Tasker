@@ -1,3 +1,4 @@
+// Lists, creates, and deletes comments. A reply cannot have its own replies. Deleting a comment also deletes its replies.
 const { Comment, Project, Task } = require('../models');
 const { accessLevel, canView, idOf, inactiveMessage, isActive } = require('../utils/access');
 
@@ -37,6 +38,7 @@ async function getComments(req, res) {
   }
 }
 
+// parent must be a top-level comment on this same task.
 async function createComment(req, res) {
   try {
     const loaded = await loadTaskProject(req);
@@ -77,6 +79,7 @@ async function createComment(req, res) {
   }
 }
 
+// The author or the project owner may delete. Replies of a deleted comment go with it.
 async function deleteComment(req, res) {
   try {
     const loaded = await loadTaskProject(req);

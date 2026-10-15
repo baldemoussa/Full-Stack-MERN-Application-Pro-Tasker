@@ -1,3 +1,4 @@
+// GET that runs when its URL is a string. A null URL waits, for example until a token exists.
 import { useEffect, useState } from "react";
 
 // GET requests that should run when a URL exists, such as GET /api/users/me.

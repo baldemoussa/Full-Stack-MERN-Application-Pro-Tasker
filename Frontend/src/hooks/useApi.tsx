@@ -1,3 +1,4 @@
+// POST, PUT, and DELETE. Sends the bearer token and returns null when the API rejects the call.
 import { useState, useCallback } from 'react';
 import type { HttpMethod, RequestOptions, ApiResponse, UseApiConfig } from '../types';
 

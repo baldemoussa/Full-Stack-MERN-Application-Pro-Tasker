@@ -1,3 +1,4 @@
+// Shared shapes for users, projects, tasks, comments, and the props each screen passes down.
 import type { ReactNode } from 'react'
 
 export type UserRole = 'admin' | 'user'

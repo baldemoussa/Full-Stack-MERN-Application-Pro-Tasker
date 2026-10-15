@@ -1,3 +1,4 @@
+// Invites a registered email as view or edit, and removes someone from the project.
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Alert from "./Alert";

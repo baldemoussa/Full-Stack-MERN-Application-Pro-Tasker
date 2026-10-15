@@ -1,3 +1,4 @@
+// Inline waiting label used while a list or a save is in progress.
 import type { SpinnerProps } from "../types";
 
 // Shown while a list is loading or a save/delete request is still running.

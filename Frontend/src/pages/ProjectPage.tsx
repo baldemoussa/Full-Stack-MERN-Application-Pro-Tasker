@@ -1,3 +1,4 @@
+// Placeholder reached from /projects/:projectId. The working board is the dashboard.
 import { Link, useParams } from "react-router-dom";
 import AppHeader from "../components/AppHeader";
 

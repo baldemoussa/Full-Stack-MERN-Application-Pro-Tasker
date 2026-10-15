@@ -1,3 +1,4 @@
+// Every project, task, and comment route requires a token. Specific paths are registered before /:id.
 const router = require('express').Router();
 const { authMiddleware } = require('../../utils/auth');
 const projectController = require('../../controllers/projectController');

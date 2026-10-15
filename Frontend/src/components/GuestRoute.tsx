@@ -1,3 +1,4 @@
+// Sends a signed-in person away from login and register to the board.
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 

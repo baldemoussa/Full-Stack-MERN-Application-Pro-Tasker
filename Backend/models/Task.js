@@ -1,3 +1,4 @@
+// A card on a project. Status chooses the column. Priority, due date, and assignees are optional details on that card.
 const {Schema, model} = require('mongoose');
 
 const taskSchema = new Schema({

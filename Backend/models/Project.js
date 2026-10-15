@@ -1,3 +1,4 @@
+// A board owned by one user. Collaborators are invited people with view or edit permission. Status is active, closed, or archived.
 const {Schema, model} = require('mongoose');
 
 const projectSchema = new Schema({

@@ -1,3 +1,4 @@
+// One project in the sidebar. The selected card is teal. Badges show access and closed or archived.
 import type { ProjectCardProps } from "../types";
 
 export default function ProjectCard({ project, selected, onSelect }: ProjectCardProps) {
@@ -5,8 +6,10 @@ export default function ProjectCard({ project, selected, onSelect }: ProjectCard
     <button
       type="button"
       onClick={() => onSelect(project._id)}
-      className={`w-full rounded px-3 py-2 text-left ${
-        selected ? "bg-teal-800 text-white" : "hover:bg-white dark:hover:bg-stone-800"
+      className={`w-full rounded-xl px-3 py-3 text-left transition-colors ${
+        selected
+          ? "bg-teal-800 text-white shadow-sm"
+          : "border border-transparent hover:border-stone-200 hover:bg-white dark:hover:border-stone-700 dark:hover:bg-stone-800"
       }`}
     >
       <span className="block break-words font-medium">{project.name}</span>

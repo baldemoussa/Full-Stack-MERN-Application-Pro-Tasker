@@ -1,3 +1,4 @@
+// Shows an API or form error. Renders nothing when the message is empty.
 import type { AlertProps } from "../types";
 
 export default function Alert({ message }: AlertProps) {

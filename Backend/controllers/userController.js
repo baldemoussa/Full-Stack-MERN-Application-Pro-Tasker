@@ -1,6 +1,8 @@
+// Register, login, the current profile, profile edits, and password changes.
 const { User } = require('../models');
 const { signToken } = require('../utils/auth');
 
+// Creates the account and returns a token so the new person lands on the board.
 async function registerUser(req, res) {
   try {
     const user = await User.create(req.body);
@@ -11,6 +13,7 @@ async function registerUser(req, res) {
   }
 }
 
+// Checks the email, then the password. The two failures use different messages.
 async function loginUser(req, res) {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -31,6 +34,7 @@ async function loginUser(req, res) {
 }
 
 //function that loads User.findById(req.user._id).select('-password') and returns that user. If no user is found, return 404.
+// The header reads this profile. The password hash is left out.
 async function getMe(req, res) {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -47,6 +51,7 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Name, position, username, email, and photo. Role and password stay on their own routes.
 async function updateMe(req, res) {
   try {
     const user = await User.findById(req.user._id);
@@ -96,6 +101,7 @@ async function updateMe(req, res) {
   }
 }
 
+// Requires the current password. The token issued at login remains valid.
 async function changePassword(req, res) {
   try {
     const user = await User.findById(req.user._id);

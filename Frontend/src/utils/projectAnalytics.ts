@@ -1,3 +1,4 @@
+// Turns a project's tasks into the counts, pie slices, trend, and assignment rows on the analytics page.
 import type { CollaboratorUser, Task, TaskPriority, TaskStatus } from "../types";
 import { isOverdue } from "./dueDate";
 import { TASK_PRIORITIES, taskPriority } from "./taskFilters";

@@ -1,3 +1,4 @@
+// The signed-in home: project list, the selected board, and the dialogs for projects, tasks, sharing, and comments.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Alert from "../components/Alert";
@@ -168,6 +169,7 @@ export default function DashboardPage() {
     setProjectDeleteOpen(false);
   }
 
+  // Create and edit share one form. The modal closes only after the API accepts the body.
   async function handleSaveTask(body: TaskBody) {
     if (!selectedId) {
       return;
@@ -204,6 +206,7 @@ export default function DashboardPage() {
     setTaskToDelete(null);
   }
 
+  // The card moves immediately. A failed save puts it back in the column it left.
   async function handleMoveTask(task: Task, status: TaskStatus) {
     if (!selectedId || task.status === status) {
       return;

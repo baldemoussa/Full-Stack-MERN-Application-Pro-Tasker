@@ -1,3 +1,4 @@
+// Public register and login, then the signed-in profile routes.
 const router = require("express").Router();
 const userController = require('../../controllers/userController');
 const { authMiddleware } = require('../../utils/auth');

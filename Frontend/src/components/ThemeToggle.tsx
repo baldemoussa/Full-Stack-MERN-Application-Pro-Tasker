@@ -1,3 +1,4 @@
+// Sun and moon button that switches the saved theme.
 import { useTheme } from "../context/ThemeContext";
 
 // Switches the value in ThemeContext. ThemeProvider paints the page from that value.

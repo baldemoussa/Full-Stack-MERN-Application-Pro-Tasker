@@ -1,3 +1,4 @@
+// The four columns and the drag sensors. A drop on a column or on a card in that column changes the task status.
 import { useState } from "react";
 import {
   DndContext,
@@ -74,7 +75,9 @@ export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete, on
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveTask(null)}
     >
-      <div className="mt-6 grid flex-1 grid-cols-4 content-stretch gap-4">
+      {/* Four columns stay in one row. The row scrolls sideways when the window is narrow. */}
+      <div className="mt-6 overflow-x-auto pb-2">
+        <div className="grid min-w-[68rem] flex-1 grid-cols-4 content-stretch gap-4">
         {STATUSES.map((status) => (
           <TaskColumn
             key={status}
@@ -86,6 +89,7 @@ export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete, on
             onComment={onComment}
           />
         ))}
+        </div>
       </div>
       <DragOverlay>
         {activeTask ? (

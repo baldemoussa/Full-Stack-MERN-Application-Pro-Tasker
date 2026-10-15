@@ -1,3 +1,4 @@
+// The people who can be assigned to a task: the owner plus every collaborator, without duplicates.
 import type { CollaboratorUser, Project } from "../types";
 
 export function projectMembers(project: Project): CollaboratorUser[] {

@@ -1,3 +1,4 @@
+// Decides which tasks match the board search, status filter, and priority filter.
 import type { Task, TaskPriority, TaskStatus } from "../types";
 
 export const TASK_PRIORITIES: TaskPriority[] = ["Low", "Medium", "High"];

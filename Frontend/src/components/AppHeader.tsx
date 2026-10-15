@@ -1,4 +1,6 @@
+// Sticky bar with the product name, the signed-in person, night mode, and the account menu.
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { CloseIcon, KeyIcon, LogoutIcon, MenuIcon, UserIcon } from "./Icons";
 import Modal from "./Modal";
@@ -50,8 +52,10 @@ export default function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-stone-200 bg-stone-100/95 px-4 py-3 backdrop-blur dark:border-stone-700 dark:bg-stone-950/95">
-      <p className="shrink-0 font-semibold">Pro-Tasker</p>
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-stone-200/80 bg-stone-50/90 px-4 py-3 shadow-sm backdrop-blur dark:border-stone-700 dark:bg-stone-950/90">
+      <Link to="/dashboard" className="shrink-0 rounded font-semibold tracking-tight">
+        Pro-Tasker
+      </Link>
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <span className="flex min-w-0 items-center gap-2">
           <ProfileAvatar name={user?.fullName || user?.username || ""} photo={user?.profilePhoto} />

@@ -1,3 +1,4 @@
+// Shrinks a chosen photo to a small JPEG so the register and profile requests stay under the API limit.
 const AVATAR_SIZE = 256;
 const MAX_DATA_URL_LENGTH = 100_000;
 

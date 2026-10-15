@@ -1,3 +1,4 @@
+// Dialog shell. Closing it unmounts the form, which clears the fields.
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { ModalProps } from "../types";

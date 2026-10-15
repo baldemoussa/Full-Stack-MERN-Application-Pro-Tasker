@@ -1,3 +1,4 @@
+// Changes the password after checking the current one. The existing token stays valid.
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import Spinner from "./Spinner";

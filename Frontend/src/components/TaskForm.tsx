@@ -1,3 +1,4 @@
+// Collects the task fields, including priority, due date, and the people to assign.
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import ProfileAvatar from "./ProfileAvatar";

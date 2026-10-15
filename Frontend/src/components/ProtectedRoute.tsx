@@ -1,3 +1,4 @@
+// Sends a guest to login and waits while the saved session is loading.
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 

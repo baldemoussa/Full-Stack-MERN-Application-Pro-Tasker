@@ -1,3 +1,4 @@
+// The session contract. AuthProvider fills it in. Screens read it with useAuth.
 import { createContext, useContext } from "react";
 import type { AuthContextType } from "../types";
 
