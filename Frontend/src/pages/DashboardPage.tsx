@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Alert from "../components/Alert";
+import { ArchiveIcon, IconButton, LockIcon, PencilIcon, PlusIcon, ReopenIcon, ShareIcon, TrashIcon } from "../components/Icons";
 import BoardOverview from "../components/BoardOverview";
 import AppHeader from "../components/AppHeader";
 import CollaboratorForm from "../components/CollaboratorForm";
@@ -251,13 +252,13 @@ export default function DashboardPage() {
         <aside className="max-h-56 overflow-y-auto border-b border-stone-200 p-4 dark:border-stone-700 md:max-h-none md:w-72 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r">
           <div className="flex items-center justify-between gap-2">
             <h1 className="min-w-0 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">My projects</h1>
-            <button
-              type="button"
-              className="shrink-0 rounded bg-teal-800 px-2 py-1 text-sm text-white"
+            <IconButton
+              label="New project"
+              className="border-transparent bg-teal-800 text-white dark:border-transparent dark:text-white"
               onClick={openCreateProject}
             >
-              New project
-            </button>
+              <PlusIcon />
+            </IconButton>
           </div>
           <Alert message={projectList.error} />
           {projectList.loading && projects.length === 0 ? (
@@ -322,70 +323,52 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.access === "owner" && projectStatus(selectedProject) === "active" && (
-                    <button
-                      type="button"
-                      className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
-                      onClick={() => setShareOpen(true)}
-                    >
-                      Share
-                    </button>
+                    <IconButton label="Share" onClick={() => setShareOpen(true)}>
+                      <ShareIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access !== "view" && projectStatus(selectedProject) === "active" && (
-                    <button
-                      type="button"
-                      className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
-                      onClick={openEditProject}
-                    >
-                      Edit
-                    </button>
+                    <IconButton label="Edit project" onClick={openEditProject}>
+                      <PencilIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access === "owner" && projectStatus(selectedProject) !== "archived" && (
-                    <button
-                      type="button"
-                      className="rounded border border-stone-300 px-3 py-2 text-sm disabled:opacity-60 dark:border-stone-600"
-                      onClick={() => handleProjectStatus("archive")}
-                      disabled={statusApi.loading}
-                    >
-                      Archive
-                    </button>
+                    <IconButton label="Archive" onClick={() => handleProjectStatus("archive")} disabled={statusApi.loading}>
+                      <ArchiveIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access === "owner" && projectStatus(selectedProject) === "active" && (
-                    <button
-                      type="button"
-                      className="rounded border border-stone-300 px-3 py-2 text-sm disabled:opacity-60 dark:border-stone-600"
-                      onClick={() => handleProjectStatus("close")}
-                      disabled={statusApi.loading}
-                    >
-                      Close
-                    </button>
+                    <IconButton label="Close project" onClick={() => handleProjectStatus("close")} disabled={statusApi.loading}>
+                      <LockIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access === "owner" && projectStatus(selectedProject) !== "active" && (
-                    <button
-                      type="button"
-                      className="rounded bg-teal-800 px-3 py-2 text-sm text-white disabled:opacity-60"
+                    <IconButton
+                      label="Reopen"
+                      className="border-transparent bg-teal-800 text-white dark:border-transparent dark:text-white"
                       onClick={() => handleProjectStatus("reopen")}
                       disabled={statusApi.loading}
                     >
-                      Reopen
-                    </button>
+                      <ReopenIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access === "owner" && (
-                    <button
-                      type="button"
-                      className="rounded border border-red-200 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:text-red-300"
+                    <IconButton
+                      label="Delete project"
+                      className="border-red-200 text-red-700 dark:border-red-900 dark:text-red-300"
                       onClick={() => setProjectDeleteOpen(true)}
                     >
-                      Delete
-                    </button>
+                      <TrashIcon />
+                    </IconButton>
                   )}
                   {selectedProject.access !== "view" && projectStatus(selectedProject) === "active" && (
-                    <button
-                      type="button"
-                      className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
+                    <IconButton
+                      label="New task"
+                      className="border-transparent bg-teal-800 text-white dark:border-transparent dark:text-white"
                       onClick={openCreateTask}
                     >
-                      New task
-                    </button>
+                      <PlusIcon />
+                    </IconButton>
                   )}
                 </div>
               </div>

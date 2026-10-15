@@ -93,7 +93,7 @@ If the username or email is already registered, the form shows the error returne
 1. Enter the email and password on **Log in**.
 2. Choose **Log in**.
 
-The header shows the full name, position, and profile photo. **Profile** changes the full name, position, username, email, and profile photo. **Password** asks for the current password and a new password of at least 5 characters. **Log out** returns to the login page and ends the session in this tab.
+The header shows the full name, position, and profile photo. The menu button opens **Profile**, **Password**, and **Log out**. **Profile** changes the full name, position, username, email, and profile photo. **Password** asks for the current password and a new password of at least 5 characters. **Log out** returns to the login page and ends the session in this tab.
 
 A wrong email shows `Can't find this user`. A wrong password shows `Wrong password!`.
 
@@ -105,8 +105,9 @@ The left side of the dashboard is **My projects**.
 
 - **New project** asks for a name and a description. Both are required.
 - Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
-- **Share** is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
+- The **Share** icon is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
 - **Edit** changes the name and description. Owners and people who can edit see this button. View-only people do not.
+- The project actions are icons. The pencil edits the project, the person-plus shares it, the box archives it, the lock closes it, the circular arrows reopen it, and the trash can deletes it.
 - **Close** is available to the owner of an open project. The project stays in the list, marked **Closed**, and the board becomes read only.
 - **Archive** is available to the owner of an open or closed project. The project moves to the **Archived** list and the board stays read only.
 - **Reopen** is available to the owner of a closed or archived project. The project returns to the open list and editing is allowed again.
@@ -120,7 +121,7 @@ With a project selected, the board shows four columns in one row: **To Do**, **I
 - An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
 - **Edit** on a card changes the title, description, and status.
-- **Comments** opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
+- The comment icon opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
 - **Delete** on a card asks for confirmation, then removes that task and its comments.
 
 Empty columns show **No tasks**. A view-only board explains that comments are allowed, and that drag, edit, and delete stay with people who can edit.

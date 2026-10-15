@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskCardProps } from "../types";
+import { CommentIcon, PencilIcon, TrashIcon } from "./Icons";
 
 export function TaskCardFace({ task }: { task: Task }) {
   return (
@@ -38,16 +39,16 @@ export default function TaskCard({ task, canEdit, onEdit, onDelete, onComment }:
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onComment(task)}>
-          Comments
+        <button type="button" className="rounded p-1 text-teal-800 dark:text-teal-300" aria-label={`Comments on ${task.title}`} title="Comments" onClick={() => onComment(task)}>
+          <CommentIcon />
         </button>
         {canEdit && (
           <>
-            <button type="button" className="rounded px-2 py-1 text-sm text-teal-800 dark:text-teal-300" onClick={() => onEdit(task)}>
-              Edit
+            <button type="button" className="rounded p-1 text-teal-800 dark:text-teal-300" aria-label={`Edit ${task.title}`} title="Edit" onClick={() => onEdit(task)}>
+              <PencilIcon />
             </button>
-            <button type="button" className="rounded px-2 py-1 text-sm text-red-700 dark:text-red-300" onClick={() => onDelete(task)}>
-              Delete
+            <button type="button" className="rounded p-1 text-red-700 dark:text-red-300" aria-label={`Delete ${task.title}`} title="Delete" onClick={() => onDelete(task)}>
+              <TrashIcon />
             </button>
           </>
         )}
