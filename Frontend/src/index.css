@@ -2,16 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-.font-nunito {
-  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
-}
-
 @layer base {
+  html {
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+
   button,
   a,
   input,
   select,
   textarea {
+    font-family: inherit;
     @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800;
   }
 }

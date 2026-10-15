@@ -21,7 +21,7 @@ function ThemeProvider({ children }: ThemeProviderProps) {
     <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
       {/* The "dark" class is what Tailwind uses to turn on dark: styles. */}
       <div className={darkMode ? "dark" : ""}>
-        <div className="min-h-screen bg-stone-100 font-nunito text-stone-900 [color-scheme:light] dark:bg-stone-950 dark:text-stone-100 dark:[color-scheme:dark]">
+        <div className="min-h-screen bg-stone-100 text-stone-900 [color-scheme:light] dark:bg-stone-950 dark:text-stone-100 dark:[color-scheme:dark]">
           {children}
         </div>
       </div>

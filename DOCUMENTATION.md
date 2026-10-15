@@ -581,7 +581,7 @@ DOCUMENTATION.md             This document
 | Styling | Tailwind CSS 3.4 | Layout, light mode, night mode |
 | Motion | Motion | Card enter, exit, and drag overlay |
 | Drag and drop | dnd-kit | Moving a task between columns |
-| Font | Nunito | Loaded from Google Fonts |
+| Font | Plus Jakarta Sans | Loaded from Google Fonts for the whole application |
 | Backend | Node.js, Express 5 | HTTP API |
 | Data | Mongoose 9, MongoDB Atlas | Users, projects, and tasks |
 | Passwords | bcrypt, 10 salt rounds | Hashed before save |

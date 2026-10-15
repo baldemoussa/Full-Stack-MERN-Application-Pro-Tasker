@@ -9,7 +9,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        nunito: ["Nunito", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      fontWeight: {
+        black: "800",
       },
     },
   },
