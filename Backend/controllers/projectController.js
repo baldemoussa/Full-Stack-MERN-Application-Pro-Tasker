@@ -1,5 +1,5 @@
 const { Comment, Project, Task, User } = require('../models');
-const { accessLevel, canEdit, canView, idOf, presentProject } = require('../utils/access');
+const { accessLevel, canEdit, canView, idOf, inactiveMessage, isActive, presentProject } = require('../utils/access');
 
 const collaboratorFields = 'username email fullName position profilePhoto';
 
@@ -18,6 +18,7 @@ function writableFields(body) {
   delete updates.user;
   delete updates.collaborators;
   delete updates.access;
+  delete updates.status;
   return updates;
 }
 
@@ -27,6 +28,7 @@ async function createProject(req, res) {
       ...writableFields(req.body),
       user: req.user._id,
       collaborators: [],
+      status: 'active',
     });
     const project = await loadProject(created._id);
     res.status(201).json(presentProject(project, req.user._id));
@@ -76,6 +78,9 @@ async function updateProject(req, res) {
     if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to update this project.' });
     }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
+    }
 
     Object.assign(project, writableFields(req.body));
     await project.save();
@@ -112,6 +117,9 @@ async function addCollaborator(req, res) {
     }
     if (accessLevel(project, req.user._id) !== 'owner') {
       return res.status(403).json({ message: 'Only the project owner can invite collaborators.' });
+    }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
     }
 
     const email = String(req.body.email || '').trim();
@@ -157,6 +165,9 @@ async function removeCollaborator(req, res) {
     if (accessLevel(project, req.user._id) !== 'owner') {
       return res.status(403).json({ message: 'Only the project owner can remove collaborators.' });
     }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
+    }
 
     const entry = project.collaborators.find((item) => idOf(item.user) === req.params.userId);
     if (!entry) {
@@ -172,6 +183,42 @@ async function removeCollaborator(req, res) {
   }
 }
 
+async function setProjectStatus(req, res, status) {
+  try {
+    const project = await loadProject(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'No project found with this id!' });
+    }
+    if (accessLevel(project, req.user._id) !== 'owner') {
+      return res.status(403).json({ message: 'Only the project owner can change this project.' });
+    }
+
+    const current = project.status || 'active';
+    if (current === status) {
+      const label = status === 'active' ? 'open' : status;
+      return res.status(400).json({ message: `This project is already ${label}.` });
+    }
+
+    project.status = status;
+    await project.save();
+    res.json(presentProject(project, req.user._id));
+  } catch (err) {
+    res.status(500).json(err);
+  }
+}
+
+function closeProject(req, res) {
+  return setProjectStatus(req, res, 'closed');
+}
+
+function archiveProject(req, res) {
+  return setProjectStatus(req, res, 'archived');
+}
+
+function reopenProject(req, res) {
+  return setProjectStatus(req, res, 'active');
+}
+
 module.exports = {
   createProject,
   getAllProjects,
@@ -180,4 +227,7 @@ module.exports = {
   deleteProject,
   addCollaborator,
   removeCollaborator,
+  closeProject,
+  archiveProject,
+  reopenProject,
 };

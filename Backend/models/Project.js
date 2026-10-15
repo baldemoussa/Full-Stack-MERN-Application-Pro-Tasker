@@ -16,6 +16,11 @@ const projectSchema = new Schema({
         ref: 'User',
         required: true
     },
+    status: {
+        type: String,
+        enum: ['active', 'closed', 'archived'],
+        default: 'active',
+    },
     collaborators: {
         type: [{
             user: {

@@ -18,6 +18,10 @@ import { authHeaders } from "../utils/authHeaders";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+function projectStatus(project: Project) {
+  return project.status ?? "active";
+}
+
 export default function DashboardPage() {
   const { token } = useAuth();
   const projectList = useFetch<Project[]>(
@@ -30,6 +34,7 @@ export default function DashboardPage() {
   const taskDeleteApi = useApi<ApiMessage>({ token });
   const moveApi = useApi<Task>({ token });
   const inviteApi = useApi<Project>({ token });
+  const statusApi = useApi<Project>({ token });
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -59,7 +64,7 @@ export default function DashboardPage() {
       if (current && list.some((project) => project._id === current)) {
         return current;
       }
-      return list[0]?._id ?? null;
+      return list.find((project) => projectStatus(project) !== "archived")?._id ?? list[0]?._id ?? null;
     });
   }, [projectList.data]);
 
@@ -217,6 +222,16 @@ export default function DashboardPage() {
     return true;
   }
 
+  async function handleProjectStatus(action: "close" | "archive" | "reopen") {
+    if (!selectedId) {
+      return;
+    }
+    const updated = await statusApi.put(`/api/projects/${selectedId}/${action}`);
+    if (updated) {
+      replaceProject(updated);
+    }
+  }
+
   async function handleRemoveCollaborator(userId: string) {
     if (!selectedId) {
       return;
@@ -252,15 +267,38 @@ export default function DashboardPage() {
           ) : projects.length === 0 ? (
             <p className="mt-3 text-sm text-stone-500 dark:text-stone-400">No projects yet.</p>
           ) : (
-            <div className="mt-3 space-y-2">
-              {projects.map((project) => (
-                <ProjectCard
-                  key={project._id}
-                  project={project}
-                  selected={project._id === selectedProject?._id}
-                  onSelect={setSelectedId}
-                />
-              ))}
+            <div className="mt-3 space-y-4">
+              <div className="space-y-2">
+                {projects.filter((project) => projectStatus(project) !== "archived").length === 0 ? (
+                  <p className="text-sm text-stone-500 dark:text-stone-400">No open projects.</p>
+                ) : (
+                  projects
+                    .filter((project) => projectStatus(project) !== "archived")
+                    .map((project) => (
+                      <ProjectCard
+                        key={project._id}
+                        project={project}
+                        selected={project._id === selectedProject?._id}
+                        onSelect={setSelectedId}
+                      />
+                    ))
+                )}
+              </div>
+              {projects.some((project) => projectStatus(project) === "archived") && (
+                <div className="space-y-2">
+                  <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">Archived</h2>
+                  {projects
+                    .filter((project) => projectStatus(project) === "archived")
+                    .map((project) => (
+                      <ProjectCard
+                        key={project._id}
+                        project={project}
+                        selected={project._id === selectedProject?._id}
+                        onSelect={setSelectedId}
+                      />
+                    ))}
+                </div>
+              )}
             </div>
           )}
         </aside>
@@ -271,14 +309,19 @@ export default function DashboardPage() {
                 <div className="min-w-0">
                   <h2 className="break-words text-2xl font-semibold">{selectedProject.name}</h2>
                   <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
-                  {selectedProject.access === "view" && (
+                  {projectStatus(selectedProject) !== "active" && (
+                    <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
+                      This project is {projectStatus(selectedProject)}. The board is read only until the owner reopens it.
+                    </p>
+                  )}
+                  {projectStatus(selectedProject) === "active" && selectedProject.access === "view" && (
                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
                       View only. You can comment. Drag, edit, and delete stay with people who can edit.
                     </p>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {selectedProject.access === "owner" && (
+                  {selectedProject.access === "owner" && projectStatus(selectedProject) === "active" && (
                     <button
                       type="button"
                       className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
@@ -287,13 +330,43 @@ export default function DashboardPage() {
                       Share
                     </button>
                   )}
-                  {selectedProject.access !== "view" && (
+                  {selectedProject.access !== "view" && projectStatus(selectedProject) === "active" && (
                     <button
                       type="button"
                       className="rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
                       onClick={openEditProject}
                     >
                       Edit
+                    </button>
+                  )}
+                  {selectedProject.access === "owner" && projectStatus(selectedProject) !== "archived" && (
+                    <button
+                      type="button"
+                      className="rounded border border-stone-300 px-3 py-2 text-sm disabled:opacity-60 dark:border-stone-600"
+                      onClick={() => handleProjectStatus("archive")}
+                      disabled={statusApi.loading}
+                    >
+                      Archive
+                    </button>
+                  )}
+                  {selectedProject.access === "owner" && projectStatus(selectedProject) === "active" && (
+                    <button
+                      type="button"
+                      className="rounded border border-stone-300 px-3 py-2 text-sm disabled:opacity-60 dark:border-stone-600"
+                      onClick={() => handleProjectStatus("close")}
+                      disabled={statusApi.loading}
+                    >
+                      Close
+                    </button>
+                  )}
+                  {selectedProject.access === "owner" && projectStatus(selectedProject) !== "active" && (
+                    <button
+                      type="button"
+                      className="rounded bg-teal-800 px-3 py-2 text-sm text-white disabled:opacity-60"
+                      onClick={() => handleProjectStatus("reopen")}
+                      disabled={statusApi.loading}
+                    >
+                      Reopen
                     </button>
                   )}
                   {selectedProject.access === "owner" && (
@@ -305,7 +378,7 @@ export default function DashboardPage() {
                       Delete
                     </button>
                   )}
-                  {selectedProject.access !== "view" && (
+                  {selectedProject.access !== "view" && projectStatus(selectedProject) === "active" && (
                     <button
                       type="button"
                       className="rounded bg-teal-800 px-3 py-2 text-sm text-white"
@@ -316,7 +389,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-              <Alert message={taskList.error ?? (shareOpen ? null : moveApi.error?.message ?? null)} />
+              <Alert message={taskList.error ?? statusApi.error?.message ?? (shareOpen ? null : moveApi.error?.message ?? null)} />
               {taskList.loading && tasks.length === 0 ? (
                 <p className="mt-6">
                   <Spinner label="Loading tasks..." />
@@ -326,7 +399,7 @@ export default function DashboardPage() {
                   <BoardOverview tasks={tasks} project={selectedProject} />
                   <TaskBoard
                     tasks={tasks}
-                    canEdit={selectedProject.access !== "view"}
+                    canEdit={selectedProject.access !== "view" && projectStatus(selectedProject) === "active"}
                     onMove={handleMoveTask}
                     onEdit={openEditTask}
                     onDelete={setTaskToDelete}
@@ -420,6 +493,7 @@ export default function DashboardPage() {
             projectId={selectedProject._id}
             taskId={commentTask._id}
             canModerate={selectedProject.access === "owner"}
+            locked={projectStatus(selectedProject) !== "active"}
           />
         </Modal>
       )}

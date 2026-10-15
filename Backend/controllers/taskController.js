@@ -1,5 +1,5 @@
 const { Comment, Project, Task } = require('../models');
-const { accessLevel, canEdit, canView } = require('../utils/access');
+const { accessLevel, canEdit, canView, inactiveMessage, isActive } = require('../utils/access');
 
 async function createTask(req, res) {
   try {
@@ -9,6 +9,9 @@ async function createTask(req, res) {
     }
     if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to create a task for this project.' });
+    }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
     }
 
     const task = await Task.create({
@@ -52,6 +55,9 @@ async function updateTask(req, res) {
     if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to update this task.' });
     }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
+    }
 
     const updates = { ...req.body };
     delete updates.project;
@@ -75,6 +81,9 @@ async function deleteTask(req, res) {
     }
     if (!canEdit(accessLevel(project, req.user._id))) {
       return res.status(403).json({ message: 'User is not authorized to delete this task.' });
+    }
+    if (!isActive(project)) {
+      return res.status(403).json({ message: inactiveMessage(project) });
     }
 
     await Comment.deleteMany({ task: task._id });

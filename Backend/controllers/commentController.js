@@ -1,5 +1,5 @@
 const { Comment, Project, Task } = require('../models');
-const { accessLevel, canView, idOf } = require('../utils/access');
+const { accessLevel, canView, idOf, inactiveMessage, isActive } = require('../utils/access');
 
 const authorFields = 'username fullName position profilePhoto';
 
@@ -43,6 +43,9 @@ async function createComment(req, res) {
     if (loaded.error) {
       return res.status(loaded.error.status).json({ message: loaded.error.message });
     }
+    if (!isActive(loaded.project)) {
+      return res.status(403).json({ message: inactiveMessage(loaded.project) });
+    }
 
     const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
     if (!text) {
@@ -79,6 +82,9 @@ async function deleteComment(req, res) {
     const loaded = await loadTaskProject(req);
     if (loaded.error) {
       return res.status(loaded.error.status).json({ message: loaded.error.message });
+    }
+    if (!isActive(loaded.project)) {
+      return res.status(403).json({ message: inactiveMessage(loaded.project) });
     }
 
     const comment = await Comment.findById(req.params.commentId);

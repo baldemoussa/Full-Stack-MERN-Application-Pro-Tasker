@@ -23,6 +23,16 @@ export default function ProjectCard({ project, selected, onSelect }: ProjectCard
           Shared
         </span>
       )}
+      {project.status === "closed" && (
+        <span className={`mt-1 block text-xs ${selected ? "text-teal-100" : "text-amber-700 dark:text-amber-300"}`}>
+          Closed
+        </span>
+      )}
+      {project.status === "archived" && (
+        <span className={`mt-1 block text-xs ${selected ? "text-teal-100" : "text-stone-500 dark:text-stone-400"}`}>
+          Archived
+        </span>
+      )}
     </button>
   );
 }

@@ -36,7 +36,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 ## Features
 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours. A signed-in user can update their profile and change their password.
-- Create, read, update, and delete projects.
+- Create, read, update, and delete projects. The owner can close, archive, or reopen a project. A closed or archived project stays readable and cannot be edited until it is reopened.
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
 - Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board and add comments.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
@@ -156,10 +156,13 @@ Register and login return a token. The client then calls `/api/users/me` and use
 | GET | `/api/projects/:id` | — |
 | PUT | `/api/projects/:id` | `name`, `description` |
 | DELETE | `/api/projects/:id` | — |
+| PUT | `/api/projects/:id/close` | — |
+| PUT | `/api/projects/:id/archive` | — |
+| PUT | `/api/projects/:id/reopen` | — |
 | POST | `/api/projects/:id/collaborators` | `email`, `permission` (`view` or `edit`) |
 | DELETE | `/api/projects/:id/collaborators/:userId` | — |
 
-The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, or delete the project. Delete also removes every task whose `project` is that id, and the comments on those tasks.
+The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, delete the project, or change its status between open, closed, and archived. Delete also removes every task whose `project` is that id, and the comments on those tasks.
 
 ### Tasks
 

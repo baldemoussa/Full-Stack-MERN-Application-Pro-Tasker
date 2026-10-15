@@ -107,6 +107,9 @@ The left side of the dashboard is **My projects**.
 - Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
 - **Share** is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
 - **Edit** changes the name and description. Owners and people who can edit see this button. View-only people do not.
+- **Close** is available to the owner of an open project. The project stays in the list, marked **Closed**, and the board becomes read only.
+- **Archive** is available to the owner of an open or closed project. The project moves to the **Archived** list and the board stays read only.
+- **Reopen** is available to the owner of a closed or archived project. The project returns to the open list and editing is allowed again.
 - **Delete** asks for confirmation and is only shown to the owner. Confirming removes the project, every task on it, and every comment on those tasks.
 
 ### Tasks
@@ -612,6 +615,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `name` | Required, trimmed |
 | `description` | Required, trimmed |
 | `user` | Required ObjectId reference to User. Set by the server from the token. A client cannot replace it on update |
+| `status` | `active`, `closed`, or `archived`. Default `active`. Only the owner changes it, through the close, archive, and reopen routes. A client cannot set it on create or update |
 | `collaborators` | List of `{ user, permission }`. `permission` is `view` or `edit`. Only the owner can change this list, through the collaborator routes |
 | `access` | Not stored. Each response sets `owner`, `edit`, or `view` for the caller |
 
@@ -871,6 +875,18 @@ Body: `name` and `description`. Owner and edit may call it. View may not.
 Owner only. **200** `{ "message": "Project deleted!" }`.
 
 Tasks with that `project` id are deleted first. **404** and **403** use `No project found with this id!` and `User is not authorized to delete this project.`
+
+#### PUT `/api/projects/:id/close`, `/archive`, and `/reopen`
+
+Owner only. No body. Each route sets `status` to `closed`, `archived`, or `active`.
+
+**200** returns the project. A closed or archived project can still be read. Creating or changing tasks, comments, the project name, and collaborators returns **403** until the owner reopens it.
+
+| Condition | Status | Message |
+| --- | --- | --- |
+| Caller is not the owner | 403 | `Only the project owner can change this project.` |
+| The project is already in that state | 400 | `This project is already closed.`, `already archived.`, or `already open.` |
+| Project missing | 404 | `No project found with this id!` |
 
 #### POST `/api/projects/:id/collaborators`
 

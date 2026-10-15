@@ -18,10 +18,12 @@ export default function TaskComments({
   projectId,
   taskId,
   canModerate,
+  locked = false,
 }: {
   projectId: string;
   taskId: string;
   canModerate: boolean;
+  locked?: boolean;
 }) {
   const { token, user } = useAuth();
   const list = useFetch<Comment[]>(
@@ -94,17 +96,17 @@ export default function TaskComments({
         <ul className="space-y-3">
           {roots.map((comment) => (
             <li key={comment._id} className="rounded border border-stone-200 p-3 dark:border-stone-700">
-              <CommentBody comment={comment} canRemove={canRemove(comment)} onRemove={() => remove(comment._id)} />
+              <CommentBody comment={comment} canRemove={!locked && canRemove(comment)} onRemove={() => remove(comment._id)} />
               <ul className="mt-3 space-y-2 border-l-2 border-stone-200 pl-3 dark:border-stone-700">
                 {comments
                   .filter((reply) => reply.parent === comment._id)
                   .map((reply) => (
                     <li key={reply._id}>
-                      <CommentBody comment={reply} canRemove={canRemove(reply)} onRemove={() => remove(reply._id)} />
+                      <CommentBody comment={reply} canRemove={!locked && canRemove(reply)} onRemove={() => remove(reply._id)} />
                     </li>
                   ))}
               </ul>
-              {replyTo === comment._id ? (
+              {locked ? null : replyTo === comment._id ? (
                 <form className="mt-3 space-y-2" onSubmit={(event) => submit(event, { text: replyText, parent: comment._id })}>
                   <label className="block text-sm">
                     <span>Reply</span>
@@ -153,6 +155,9 @@ export default function TaskComments({
           ))}
         </ul>
       )}
+      {locked ? (
+        <p className="text-sm text-stone-500 dark:text-stone-400">Comments stay read only until this project is reopened.</p>
+      ) : (
       <form className="space-y-2" onSubmit={(event) => submit(event, { text })}>
         <label className="block">
           <span>Comment</span>
@@ -175,6 +180,7 @@ export default function TaskComments({
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

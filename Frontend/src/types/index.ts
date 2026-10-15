@@ -6,6 +6,8 @@ export type TaskStatus = 'To Do' | 'In Progress' | 'Hold' | 'Done'
 
 export type ProjectAccess = 'owner' | 'edit' | 'view'
 
+export type ProjectStatus = 'active' | 'closed' | 'archived'
+
 export type CollaboratorPermission = 'view' | 'edit'
 
 export interface CollaboratorUser {
@@ -41,6 +43,7 @@ export interface Project {
   name: string
   description: string
   user: CollaboratorUser
+  status?: ProjectStatus
   collaborators: Collaborator[]
   access: ProjectAccess
   createdAt: string

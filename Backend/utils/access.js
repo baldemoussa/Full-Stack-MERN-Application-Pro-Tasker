@@ -26,6 +26,17 @@ function canEdit(level) {
   return level === 'owner' || level === 'edit';
 }
 
+function isActive(project) {
+  return !project.status || project.status === 'active';
+}
+
+function inactiveMessage(project) {
+  if (project.status === 'archived') {
+    return 'This project is archived. Reopen it to make changes.';
+  }
+  return 'This project is closed. Reopen it to make changes.';
+}
+
 function presentProject(project, userId) {
   const plain = project.toObject();
   plain.access = accessLevel(project, userId);
@@ -37,5 +48,7 @@ module.exports = {
   accessLevel,
   canView,
   canEdit,
+  isActive,
+  inactiveMessage,
   presentProject,
 };
