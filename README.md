@@ -38,8 +38,8 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours. A signed-in user can update their profile and change their password.
 - Create, read, update, and delete projects. The owner can close, archive, or reopen a project. A closed or archived project stays readable and cannot be edited until it is reopened.
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
-- Create, read, update, and delete tasks nested under a project. Each task has a priority of Low, Medium, or High. View-only collaborators can read the board and add comments.
-- Search the project list by name or description. Search the open board by title or description, and filter it by status or priority.
+- Create, read, update, and delete tasks nested under a project. Each task has a priority of Low, Medium, or High, and can be assigned to one or more people on that project. View-only collaborators can read the board and add comments.
+- Search the project list by name or description. Search the open board by title, description, or assignee, and filter it by status or priority.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
 - An overview shows the owner, the number of invited contributors, and counts Total, To Do, In Progress, Done, and Hold for the open project.
 - Drag a card onto another column. The new status is saved. Edit still changes status too.
@@ -169,15 +169,15 @@ The owner is stored as `user`. The client cannot change that field or the collab
 
 | Method | Path | Body |
 | --- | --- | --- |
-| POST | `/api/projects/:projectId/tasks` | `title`, `description`, `status`, `priority` |
+| POST | `/api/projects/:projectId/tasks` | `title`, `description`, `status`, `priority`, `assignees` |
 | GET | `/api/projects/:projectId/tasks` | — |
-| PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status`, `priority` |
+| PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status`, `priority`, `assignees` |
 | DELETE | `/api/projects/:projectId/tasks/:taskId` | — |
 | GET | `/api/projects/:projectId/tasks/:taskId/comments` | — |
 | POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
 | DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
 
-`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
+`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for the owner or a collaborator. It defaults to an empty list. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
 
 ## How a request moves
 

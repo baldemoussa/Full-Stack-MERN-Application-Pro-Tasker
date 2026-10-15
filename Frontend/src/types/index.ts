@@ -58,6 +58,7 @@ export interface Task {
   description: string
   status: TaskStatus
   priority?: TaskPriority
+  assignees?: CollaboratorUser[]
   project: string
   createdAt: string
   updatedAt: string
@@ -106,6 +107,7 @@ export interface TaskBody {
   description?: string
   status?: TaskStatus
   priority?: TaskPriority
+  assignees?: string[]
 }
 
 export interface UseApiConfig {
@@ -242,6 +244,7 @@ export interface ProjectFormProps {
 
 export interface TaskFormProps {
   initialValues?: TaskBody
+  members: CollaboratorUser[]
   submitLabel: string
   submitting?: boolean
   error?: string | null

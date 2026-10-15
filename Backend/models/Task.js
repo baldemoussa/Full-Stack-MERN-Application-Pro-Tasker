@@ -23,6 +23,10 @@ const taskSchema = new Schema({
         enum: ['Low', 'Medium', 'High'],
         default: 'Medium',
     },
+    assignees: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+    }],
     project: {
         type: Schema.Types.ObjectId,
         ref: 'Project',

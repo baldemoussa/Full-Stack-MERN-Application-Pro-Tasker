@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
+import ProfileAvatar from "./ProfileAvatar";
 import Spinner from "./Spinner";
 import type { TaskFormProps, TaskPriority, TaskStatus } from "../types";
 import { TASK_PRIORITIES } from "../utils/taskFilters";
@@ -9,6 +10,7 @@ const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done", "Hold"];
 // Create or edit a task. Status must match the backend enum.
 export default function TaskForm({
   initialValues,
+  members,
   submitLabel,
   submitting = false,
   error = null,
@@ -19,7 +21,14 @@ export default function TaskForm({
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [status, setStatus] = useState<TaskStatus>(initialValues?.status ?? "To Do");
   const [priority, setPriority] = useState<TaskPriority>(initialValues?.priority ?? "Medium");
+  const [assignees, setAssignees] = useState<string[]>(initialValues?.assignees ?? []);
   const [formError, setFormError] = useState<string | null>(null);
+
+  function toggleAssignee(userId: string) {
+    setAssignees((current) =>
+      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId],
+    );
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -29,7 +38,7 @@ export default function TaskForm({
     }
 
     setFormError(null);
-    onSubmit({ title: title.trim(), description: description.trim(), status, priority });
+    onSubmit({ title: title.trim(), description: description.trim(), status, priority, assignees });
   }
 
   return (
@@ -67,6 +76,37 @@ export default function TaskForm({
           ))}
         </select>
       </label>
+      <fieldset>
+        <legend>Assign to</legend>
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Select one or more people on this project.</p>
+        {members.length === 0 ? (
+          <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">No people are available to assign.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {members.map((member) => {
+              const name = member.fullName || member.username;
+              return (
+                <li key={member._id}>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={assignees.includes(member._id)}
+                      onChange={() => toggleAssignee(member._id)}
+                    />
+                    <ProfileAvatar name={name} photo={member.profilePhoto} className="h-7 w-7 text-[10px]" />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm">{name}</span>
+                      {member.position && (
+                        <span className="block truncate text-xs text-stone-500 dark:text-stone-400">{member.position}</span>
+                      )}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </fieldset>
       <label className="block">
         <span>Status</span>
         <select

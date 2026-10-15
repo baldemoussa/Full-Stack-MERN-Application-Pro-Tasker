@@ -13,7 +13,10 @@ export function matchesTask(
   priority: TaskPriority | "all",
 ) {
   const needle = query.trim().toLowerCase();
-  const text = `${task.title} ${task.description}`.toLowerCase();
+  const names = (task.assignees ?? [])
+    .map((person) => `${person.fullName ?? ""} ${person.username ?? ""}`)
+    .join(" ");
+  const text = `${task.title} ${task.description} ${names}`.toLowerCase();
   const queryMatches = needle.length === 0 || text.includes(needle);
   const statusMatches = status === "all" || task.status === status;
   const priorityMatches = priority === "all" || taskPriority(task) === priority;

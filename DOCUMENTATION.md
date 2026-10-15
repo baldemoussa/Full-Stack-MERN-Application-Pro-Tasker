@@ -68,7 +68,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
 - Automated test suite. The backend `npm test` script is a placeholder.
-- Hosted file uploads, due dates, assignees, or notifications. A profile photo is stored on the user document.
+- Hosted file uploads, due dates, or notifications. A profile photo is stored on the user document.
 
 ---
 
@@ -118,11 +118,11 @@ The left side of the dashboard is **My projects**.
 
 With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
 
-- **New task** asks for a title, a description, a priority, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. View-only people do not see this button.
-- **Search tasks** matches the title or the description. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
+- **New task** asks for a title, a description, a priority, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists the owner and every collaborator. Check one or more people. Leave them all unchecked to leave the task unassigned. View-only people do not see this button.
+- **Search tasks** matches the title, the description, or an assignee's name. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
 - An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
-- **Edit** on a card changes the title, description, priority, and status. Each card shows its priority.
+- **Edit** on a card changes the title, description, priority, assignees, and status. Each card shows its priority and the photos of the people assigned to it. Removing a collaborator also removes that person from every task on the project.
 - The comment icon opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
 - **Delete** on a card asks for confirmation, then removes that task and its comments.
 
@@ -232,6 +232,7 @@ erDiagram
     string status
     string priority
     ObjectId project FK
+    ObjectId assignees FK
   }
   COMMENT {
     string text
@@ -498,7 +499,7 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | Component | Receives | Sends upward | Does not receive |
 | --- | --- | --- | --- |
 | `ProjectForm` | `initialValues`, `submitLabel`, `submitting`, `error` | `onSubmit({ name, description })`, `onCancel` | Token, project id |
-| `TaskForm` | Title, description, priority, and status | `onSubmit({ title, description, status, priority })` | Token, project id |
+| `TaskForm` | Title, description, priority, assignees, and status | `onSubmit({ title, description, status, priority, assignees })` | Token, project id |
 | `ProjectCard` | `project`, `selected` | `onSelect(projectId)` | The task list |
 | `TaskBoard` | `tasks`, `canEdit` | `onMove`, `onEdit`, `onDelete` | The token |
 | `TaskColumn` | `status`, the tasks for that status, `canEdit` | `onEdit`, `onDelete` | Other columns |
@@ -518,7 +519,7 @@ TaskForm.onSubmit(body)
   -> DashboardPage.handleSaveTask
        -> taskApi.put or taskApi.post
             URL includes selectedId and, for edit, the task id
-            body is title, description, status, and priority
+            body is title, description, status, priority, and assignees
        -> setTasks replaces or appends the returned task
        -> close the modal
 ```
@@ -633,6 +634,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `description` | Required, trimmed |
 | `status` | `To Do`, `In Progress`, `Done`, or `Hold`. Default `To Do` |
 | `priority` | `Low`, `Medium`, or `High`. Default `Medium`. Tasks saved before this field existed are returned as `Medium` |
+| `assignees` | List of user ids. Each person must be the project owner or a collaborator. Empty by default. The list response includes each person's name, position, and profile photo |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
 A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
@@ -937,11 +939,12 @@ All of these require a token. The server checks the caller's access on the paren
   "title": "Draft the demo script",
   "description": "Outline register, projects, and tasks",
   "status": "To Do",
-  "priority": "High"
+  "priority": "High",
+  "assignees": ["USER_ID"]
 }
 ```
 
-`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`.
+`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`. `assignees` may be omitted and then defaults to an empty list. Each id must belong to the project owner or a collaborator. The same person is stored once. A status-only update, such as a drag, leaves the current assignees in place.
 
 **201** returns the created task.
 
@@ -950,6 +953,8 @@ All of these require a token. The server checks the caller's access on the paren
 | Project missing | 404 | `No project found with this id!` |
 | Caller cannot edit the project | 403 | `User is not authorized to create a task for this project.` |
 | Missing title or description, or a bad status or priority | 400 | Mongoose validation error |
+| Assignee is not the owner or a collaborator | 400 | `Tasks can only be assigned to the owner or a collaborator.` |
+| `assignees` is not a list | 400 | `Assignees must be a list of people on this project.` |
 
 #### GET `/api/projects/:projectId/tasks`
 

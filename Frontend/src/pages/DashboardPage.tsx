@@ -17,6 +17,7 @@ import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
 import type { ApiMessage, CollaboratorPermission, Project, ProjectBody, Task, TaskBody, TaskPriority, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
+import { projectMembers } from "../utils/projectMembers";
 import { matchesTask } from "../utils/taskFilters";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -487,12 +488,15 @@ export default function DashboardPage() {
         <Modal title={editingTask ? "Edit task" : "New task"} onClose={() => setTaskFormOpen(false)}>
           <TaskForm
             key={editingTask?._id ?? "new"}
+            members={projectMembers(selectedProject)}
             initialValues={
               editingTask
                 ? {
                     title: editingTask.title,
                     description: editingTask.description,
                     status: editingTask.status,
+                    priority: editingTask.priority ?? "Medium",
+                    assignees: (editingTask.assignees ?? []).map((person) => person._id),
                   }
                 : undefined
             }

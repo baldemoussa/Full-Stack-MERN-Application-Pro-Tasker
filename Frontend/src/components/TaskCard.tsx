@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskCardProps, TaskPriority } from "../types";
 import { CommentIcon, PencilIcon, TrashIcon } from "./Icons";
+import ProfileAvatar from "./ProfileAvatar";
 import { taskPriority } from "../utils/taskFilters";
 
 const priorityTone: Record<TaskPriority, string> = {
@@ -12,11 +13,29 @@ const priorityTone: Record<TaskPriority, string> = {
 
 export function TaskCardFace({ task }: { task: Task }) {
   const priority = taskPriority(task);
+  const assignees = task.assignees ?? [];
+  const shown = assignees.slice(0, 4);
+  const extra = assignees.length - shown.length;
+  const names = assignees.map((person) => person.fullName || person.username).join(", ");
   return (
     <>
       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${priorityTone[priority]}`}>{priority}</span>
       <h3 className="mt-2 break-words text-lg font-bold leading-tight">{task.title}</h3>
       <p className="mt-1 line-clamp-3 break-words text-sm text-stone-500 dark:text-stone-400">{task.description}</p>
+      {assignees.length > 0 && (
+        <div className="mt-3 flex items-center" title={names} aria-label={`Assigned to ${names}`}>
+          {shown.map((person) => (
+            <span key={person._id} className="-ml-2 first:ml-0">
+              <ProfileAvatar
+                name={person.fullName || person.username}
+                photo={person.profilePhoto}
+                className="h-7 w-7 text-[10px] ring-2 ring-white dark:ring-stone-800"
+              />
+            </span>
+          ))}
+          {extra > 0 && <span className="ml-2 text-xs text-stone-500 dark:text-stone-400">+{extra}</span>}
+        </div>
+      )}
     </>
   );
 }

@@ -176,6 +176,7 @@ async function removeCollaborator(req, res) {
     project.collaborators.pull(entry._id);
 
     await project.save();
+    await Task.updateMany({ project: project._id }, { $pull: { assignees: idOf(entry.user) } });
     await project.populate('collaborators.user', collaboratorFields);
     res.json(presentProject(project, req.user._id));
   } catch (err) {
