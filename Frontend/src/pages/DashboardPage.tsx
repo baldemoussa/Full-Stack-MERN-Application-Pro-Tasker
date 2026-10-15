@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [commentTask, setCommentTask] = useState<Task | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [projectQuery, setProjectQuery] = useState("");
   const [taskQuery, setTaskQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -90,6 +91,15 @@ export default function DashboardPage() {
   }, [taskList.data]);
 
   const selectedProject = projects.find((project) => project._id === selectedId) ?? null;
+  const projectNeedle = projectQuery.trim().toLowerCase();
+  const visibleProjects = projects.filter((project) => {
+    if (!projectNeedle) {
+      return true;
+    }
+    return `${project.name} ${project.description}`.toLowerCase().includes(projectNeedle);
+  });
+  const openProjects = visibleProjects.filter((project) => projectStatus(project) !== "archived");
+  const archivedProjects = visibleProjects.filter((project) => projectStatus(project) === "archived");
   const visibleTasks = tasks.filter((task) => matchesTask(task, taskQuery, statusFilter, priorityFilter));
 
   function openCreateProject() {
@@ -258,7 +268,7 @@ export default function DashboardPage() {
     <div className="flex min-h-0 flex-1 flex-col">
       <AppHeader />
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <aside className="max-h-56 overflow-y-auto border-b border-stone-200 p-4 dark:border-stone-700 md:max-h-none md:w-72 md:shrink-0 md:overflow-y-auto md:border-b-0 md:border-r">
+        <aside className="flex max-h-72 flex-col overflow-hidden border-b border-stone-200 p-4 dark:border-stone-700 md:max-h-none md:w-72 md:shrink-0 md:border-b-0 md:border-r">
           <div className="flex items-center justify-between gap-2">
             <h1 className="min-w-0 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">My projects</h1>
             <IconButton
@@ -269,22 +279,35 @@ export default function DashboardPage() {
               <PlusIcon />
             </IconButton>
           </div>
+          {projects.length > 0 && (
+            <label className="mt-3 block">
+              <span className="sr-only">Search projects</span>
+              <input
+                className="field"
+                type="search"
+                value={projectQuery}
+                onChange={(event) => setProjectQuery(event.target.value)}
+                placeholder="Search projects"
+              />
+            </label>
+          )}
           <Alert message={projectList.error} />
-          {projectList.loading && projects.length === 0 ? (
-            <p className="mt-3">
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
+            {projectList.loading && projects.length === 0 ? (
               <Spinner label="Loading projects..." />
-            </p>
-          ) : projects.length === 0 ? (
-            <p className="mt-3 text-sm text-stone-500 dark:text-stone-400">No projects yet.</p>
-          ) : (
-            <div className="mt-3 space-y-4">
-              <div className="space-y-2">
-                {projects.filter((project) => projectStatus(project) !== "archived").length === 0 ? (
-                  <p className="text-sm text-stone-500 dark:text-stone-400">No open projects.</p>
-                ) : (
-                  projects
-                    .filter((project) => projectStatus(project) !== "archived")
-                    .map((project) => (
+            ) : projects.length === 0 ? (
+              <p className="text-sm text-stone-500 dark:text-stone-400">No projects yet.</p>
+            ) : visibleProjects.length === 0 ? (
+              <p className="text-sm text-stone-500 dark:text-stone-400">No projects match this search.</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  {openProjects.length === 0 ? (
+                    projectNeedle && archivedProjects.length > 0 ? null : (
+                      <p className="text-sm text-stone-500 dark:text-stone-400">No open projects.</p>
+                    )
+                  ) : (
+                    openProjects.map((project) => (
                       <ProjectCard
                         key={project._id}
                         project={project}
@@ -292,14 +315,12 @@ export default function DashboardPage() {
                         onSelect={setSelectedId}
                       />
                     ))
-                )}
-              </div>
-              {projects.some((project) => projectStatus(project) === "archived") && (
-                <div className="space-y-2">
-                  <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">Archived</h2>
-                  {projects
-                    .filter((project) => projectStatus(project) === "archived")
-                    .map((project) => (
+                  )}
+                </div>
+                {archivedProjects.length > 0 && (
+                  <div className="space-y-2">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">Archived</h2>
+                    {archivedProjects.map((project) => (
                       <ProjectCard
                         key={project._id}
                         project={project}
@@ -307,10 +328,11 @@ export default function DashboardPage() {
                         onSelect={setSelectedId}
                       />
                     ))}
-                </div>
-              )}
-            </div>
-          )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </aside>
         <main className="flex min-w-0 flex-1 flex-col p-4">
           {selectedProject ? (
