@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { ModalProps } from "../types";
 
 // A small dialog. Closing it unmounts the form, so the fields start empty next time.
@@ -14,7 +15,7 @@ export default function Modal({ title, onClose, children }: ModalProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-20 flex items-end justify-center overflow-y-auto bg-stone-900/40 p-4 sm:items-center" onClick={onClose}>
       <div
         role="dialog"
@@ -31,6 +32,7 @@ export default function Modal({ title, onClose, children }: ModalProps) {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

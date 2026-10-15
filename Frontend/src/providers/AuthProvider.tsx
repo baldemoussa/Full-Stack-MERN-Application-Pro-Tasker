@@ -13,6 +13,8 @@ function AuthProvider({ children }: AuthProviderProps) {
   // Read any token saved in this browser tab. A refresh keeps the session.
   // Closing the tab clears sessionStorage, so the next visit starts logged out.
   const [token, setTokenState] = useState<string | null>(getToken);
+  const [savedUser, setSavedUser] = useState<SessionUser | null>(null);
+  const [savedFor, setSavedFor] = useState<string | null>(null);
 
   // POST /api/users/login and POST /api/users/register. No token is required yet.
   const authApi = useApi<AuthResponse>();
@@ -56,10 +58,19 @@ function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     clearToken();
     setTokenState(null);
+    setSavedUser(null);
+    setSavedFor(null);
+  };
+
+  // A profile save replaces the user already on screen. The token does not change.
+  const replaceUser = (next: SessionUser) => {
+    setSavedUser(next);
+    setSavedFor(token);
   };
 
   // Ignore a leftover /me response after logout. No token means no user.
-  const user = token ? me.data : null;
+  // A saved profile wins over the older /me response for this same token.
+  const user = !token ? null : savedFor === token && savedUser ? savedUser : me.data;
 
   return (
     <AuthContext.Provider
@@ -78,6 +89,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         login,
         register,
         logout,
+        replaceUser,
       }}
     >
       {children}

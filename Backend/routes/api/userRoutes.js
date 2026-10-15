@@ -11,4 +11,10 @@ router.post('/login', userController.loginUser);
 // GET /api/users/me - Return the current user
 router.get('/me', authMiddleware, userController.getMe);
 
+// PUT /api/users/me - Update the current user's profile
+router.put('/me', authMiddleware, userController.updateMe);
+
+// PUT /api/users/me/password - Replace the current user's password
+router.put('/me/password', authMiddleware, userController.changePassword);
+
 module.exports = router;

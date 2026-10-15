@@ -64,7 +64,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 
 ### Not in this version
 
-- Password reset, email verification, or profile editing.
+- Email password reset or email verification. A signed-in person can edit their profile and change their password from the header.
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
 - Automated test suite. The backend `npm test` script is a placeholder.
@@ -93,7 +93,7 @@ If the username or email is already registered, the form shows the error returne
 1. Enter the email and password on **Log in**.
 2. Choose **Log in**.
 
-The header shows the full name, position, and profile photo. **Log out** returns to the login page and ends the session in this tab.
+The header shows the full name, position, and profile photo. **Profile** changes the full name, position, username, email, and profile photo. **Password** asks for the current password and a new password of at least 5 characters. **Log out** returns to the login page and ends the session in this tab.
 
 A wrong email shows `Can't find this user`. A wrong password shows `Wrong password!`.
 
@@ -498,7 +498,7 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | `TaskCard` | One `task`, `canEdit` | `onEdit(task)`, `onDelete(task)`, drag listeners | The API |
 | `CollaboratorForm` | `collaborators`, `submitting`, `error` | `onInvite`, `onRemove` | The token |
 | `Modal` | `title`, `children` | `onClose` | Form state. Unmounting the modal resets the form |
-| `AppHeader` | `user` and `logout` from `useAuth()` | Calls `logout`. The theme button uses `useTheme()` | Projects or tasks |
+| `AppHeader` | `user` and `logout` from `useAuth()` | Calls `logout` and opens the password form. The theme button uses `useTheme()` | Projects or tasks |
 | `ProtectedRoute` | `isAuthenticated`, `loading` | Redirects guests to `/login` | — |
 | `GuestRoute` | `isAuthenticated`, `loading` | Redirects a signed-in person to `/dashboard` | — |
 | `Alert` | `message` | — | — |
@@ -786,6 +786,52 @@ Token required.
 **200** is the user without `password`.
 
 **404** `{ "message": "No user found with this id!" }` when the token's id no longer matches a user.
+
+#### PUT `/api/users/me`
+
+Token required. Updates the signed-in profile. `role` and `password` cannot be changed here.
+
+```json
+{
+  "fullName": "Ada Lovelace",
+  "position": "Project lead",
+  "username": "ada",
+  "email": "ada@example.com",
+  "profilePhoto": ""
+}
+```
+
+**200** returns the user without `password`. The current token stays valid. The header uses this response immediately.
+
+| Condition | Status | Message |
+| --- | --- | --- |
+| A required field is missing | 400 | `Full name, position, username, and email are required.` |
+| Email is not a valid address | 400 | `Must use a valid email address` |
+| Username belongs to someone else | 400 | `That username is already used.` |
+| Email belongs to someone else | 400 | `That email is already used.` |
+| Profile photo is not an image or is too large | 400 | Mongoose validation error |
+| Token's user no longer exists | 404 | `No user found with this id!` |
+
+#### PUT `/api/users/me/password`
+
+Token required.
+
+```json
+{
+  "currentPassword": "secret1",
+  "newPassword": "secret2"
+}
+```
+
+**200** `{ "message": "Password updated." }`. The response does not include the password. The current token stays valid.
+
+| Condition | Status | Message |
+| --- | --- | --- |
+| Current password does not match | 400 | `Wrong password!` |
+| A field is missing | 400 | `Current password and new password are required.` |
+| New password is shorter than 5 characters | 400 | `Password must be at least 5 characters.` |
+| New password matches the current password | 400 | `Choose a different password.` |
+| Token's user no longer exists | 404 | `No user found with this id!` |
 
 ### Projects
 
@@ -1156,7 +1202,7 @@ Accounts and sample projects created during development are in the same database
 - Login and register JSON includes the password hash. See Section 10.
 - `role` is stored and unused.
 - `/projects/:projectId` is not the task board.
-- There is no password reset.
+- There is no email password reset. A signed-in person can change their password.
 - There is no automated test suite.
 - Some database errors are returned as the raw error object.
 - Task update still uses `findByIdAndUpdate` with `{ new: true }`. Current Mongoose warns that this option should be `returnDocument: 'after'`. Behavior is unchanged: the handler returns the updated document.
@@ -1170,7 +1216,7 @@ Accounts and sample projects created during development are in the same database
 These items were recorded as future work. They are not part of this delivery.
 
 - Omit the password hash from login and register responses.
-- Password reset and email verification.
+- Email password reset and email verification.
 - Remove an account and its projects and tasks.
 - Automated API and interface tests.
 

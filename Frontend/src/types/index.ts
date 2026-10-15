@@ -151,6 +151,15 @@ export interface AuthContextType {
   login: (body: LoginBody) => Promise<boolean>
   register: (body: RegisterBody) => Promise<boolean>
   logout: () => void
+  replaceUser: (user: SessionUser) => void
+}
+
+export interface ProfileBody {
+  fullName: string
+  position: string
+  username: string
+  email: string
+  profilePhoto: string
 }
 
 export interface ThemeContextType {

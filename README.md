@@ -35,7 +35,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 
 ## Features
 
-- Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours.
+- Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours. A signed-in user can update their profile and change their password.
 - Create, read, update, and delete projects.
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
 - Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board and add comments.
@@ -142,6 +142,8 @@ Send `Authorization: Bearer <token>` on every route except register and login. A
 | POST | `/api/users/register` | `fullName`, `position`, `username`, `email`, `password` (at least 5 characters). `profilePhoto` is optional |
 | POST | `/api/users/login` | `email`, `password` |
 | GET | `/api/users/me` | — |
+| PUT | `/api/users/me` | `fullName`, `position`, `username`, `email`, `profilePhoto` |
+| PUT | `/api/users/me/password` | `currentPassword`, `newPassword` (at least 5 characters, and different from the current password) |
 
 Register and login return a token. The client then calls `/api/users/me` and uses that user, which does not include the password.
 

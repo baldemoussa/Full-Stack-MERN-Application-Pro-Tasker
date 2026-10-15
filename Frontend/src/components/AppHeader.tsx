@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Modal from "./Modal";
+import PasswordForm from "./PasswordForm";
 import ProfileAvatar from "./ProfileAvatar";
+import ProfileForm from "./ProfileForm";
 import ThemeToggle from "./ThemeToggle";
 
 export default function AppHeader() {
   const { user, logout } = useAuth();
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-stone-200 bg-stone-100/95 px-4 py-3 backdrop-blur dark:border-stone-700 dark:bg-stone-950/95">
@@ -19,6 +25,24 @@ export default function AppHeader() {
           </span>
         </span>
         <ThemeToggle />
+        {user && (
+          <>
+            <button
+              type="button"
+              className="shrink-0 rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
+              onClick={() => setProfileOpen(true)}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              className="shrink-0 rounded border border-stone-300 px-3 py-2 text-sm dark:border-stone-600"
+              onClick={() => setPasswordOpen(true)}
+            >
+              Password
+            </button>
+          </>
+        )}
         <button
           type="button"
           className="shrink-0 rounded bg-stone-900 px-3 py-2 text-sm text-white dark:bg-stone-100 dark:text-stone-900"
@@ -27,6 +51,16 @@ export default function AppHeader() {
           Log out
         </button>
       </div>
+      {profileOpen && (
+        <Modal title="Edit profile" onClose={() => setProfileOpen(false)}>
+          <ProfileForm onDone={() => setProfileOpen(false)} />
+        </Modal>
+      )}
+      {passwordOpen && (
+        <Modal title="Change password" onClose={() => setPasswordOpen(false)}>
+          <PasswordForm onDone={() => setPasswordOpen(false)} />
+        </Modal>
+      )}
     </header>
   );
 }

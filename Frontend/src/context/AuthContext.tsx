@@ -14,6 +14,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => false,
   register: async () => false,
   logout: () => {},
+  replaceUser: () => {},
 });
 
 // Pages call useAuth() instead of useContext(AuthContext) directly.
