@@ -1,6 +1,14 @@
 const { Comment, Project, Task } = require('../models');
 const { accessLevel, canEdit, canView, inactiveMessage, isActive } = require('../utils/access');
 
+function presentTask(task) {
+  const plain = task.toObject();
+  if (!plain.priority) {
+    plain.priority = 'Medium';
+  }
+  return plain;
+}
+
 async function createTask(req, res) {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -18,7 +26,7 @@ async function createTask(req, res) {
       ...req.body,
       project: req.params.projectId,
     });
-    res.status(201).json(task);
+    res.status(201).json(presentTask(task));
   } catch (err) {
     res.status(400).json(err);
   }
@@ -35,7 +43,7 @@ async function getAllTasks(req, res) {
     }
 
     const tasks = await Task.find({ project: req.params.projectId });
-    res.json(tasks);
+    res.json(tasks.map(presentTask));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -61,8 +69,11 @@ async function updateTask(req, res) {
 
     const updates = { ...req.body };
     delete updates.project;
-    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, updates, { new: true });
-    res.json(updatedTask);
+    const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, updates, {
+      returnDocument: 'after',
+      runValidators: true,
+    });
+    res.json(presentTask(updatedTask));
   } catch (err) {
     res.status(400).json(err);
   }

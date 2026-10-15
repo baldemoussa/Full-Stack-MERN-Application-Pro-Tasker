@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import Alert from "./Alert";
 import Spinner from "./Spinner";
-import type { TaskFormProps, TaskStatus } from "../types";
+import type { TaskFormProps, TaskPriority, TaskStatus } from "../types";
+import { TASK_PRIORITIES } from "../utils/taskFilters";
 
 const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done", "Hold"];
 
@@ -17,6 +18,7 @@ export default function TaskForm({
   const [title, setTitle] = useState(initialValues?.title ?? "");
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [status, setStatus] = useState<TaskStatus>(initialValues?.status ?? "To Do");
+  const [priority, setPriority] = useState<TaskPriority>(initialValues?.priority ?? "Medium");
   const [formError, setFormError] = useState<string | null>(null);
 
   function handleSubmit(event: FormEvent) {
@@ -27,7 +29,7 @@ export default function TaskForm({
     }
 
     setFormError(null);
-    onSubmit({ title: title.trim(), description: description.trim(), status });
+    onSubmit({ title: title.trim(), description: description.trim(), status, priority });
   }
 
   return (
@@ -50,6 +52,20 @@ export default function TaskForm({
           rows={3}
           required
         />
+      </label>
+      <label className="block">
+        <span>Priority</span>
+        <select
+          className="field"
+          value={priority}
+          onChange={(event) => setPriority(event.target.value as TaskPriority)}
+        >
+          {TASK_PRIORITIES.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="block">
         <span>Status</span>

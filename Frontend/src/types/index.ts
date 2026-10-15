@@ -4,6 +4,8 @@ export type UserRole = 'admin' | 'user'
 
 export type TaskStatus = 'To Do' | 'In Progress' | 'Hold' | 'Done'
 
+export type TaskPriority = 'Low' | 'Medium' | 'High'
+
 export type ProjectAccess = 'owner' | 'edit' | 'view'
 
 export type ProjectStatus = 'active' | 'closed' | 'archived'
@@ -55,6 +57,7 @@ export interface Task {
   title: string
   description: string
   status: TaskStatus
+  priority?: TaskPriority
   project: string
   createdAt: string
   updatedAt: string
@@ -102,6 +105,7 @@ export interface TaskBody {
   title?: string
   description?: string
   status?: TaskStatus
+  priority?: TaskPriority
 }
 
 export interface UseApiConfig {

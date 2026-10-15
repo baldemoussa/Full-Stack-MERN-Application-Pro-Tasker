@@ -1,12 +1,21 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Task, TaskCardProps } from "../types";
+import type { Task, TaskCardProps, TaskPriority } from "../types";
 import { CommentIcon, PencilIcon, TrashIcon } from "./Icons";
+import { taskPriority } from "../utils/taskFilters";
+
+const priorityTone: Record<TaskPriority, string> = {
+  Low: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-200",
+  Medium: "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
+  High: "bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-200",
+};
 
 export function TaskCardFace({ task }: { task: Task }) {
+  const priority = taskPriority(task);
   return (
     <>
-      <h3 className="break-words text-lg font-bold leading-tight">{task.title}</h3>
+      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${priorityTone[priority]}`}>{priority}</span>
+      <h3 className="mt-2 break-words text-lg font-bold leading-tight">{task.title}</h3>
       <p className="mt-1 line-clamp-3 break-words text-sm text-stone-500 dark:text-stone-400">{task.description}</p>
     </>
   );

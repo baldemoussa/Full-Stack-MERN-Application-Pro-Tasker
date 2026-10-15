@@ -10,12 +10,14 @@ import ProjectForm from "../components/ProjectForm";
 import Spinner from "../components/Spinner";
 import TaskBoard from "../components/TaskBoard";
 import TaskComments from "../components/TaskComments";
+import TaskFilters from "../components/TaskFilters";
 import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
-import type { ApiMessage, CollaboratorPermission, Project, ProjectBody, Task, TaskBody, TaskStatus } from "../types";
+import type { ApiMessage, CollaboratorPermission, Project, ProjectBody, Task, TaskBody, TaskPriority, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
+import { matchesTask } from "../utils/taskFilters";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -47,6 +49,9 @@ export default function DashboardPage() {
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [commentTask, setCommentTask] = useState<Task | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [taskQuery, setTaskQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
   const taskList = useFetch<Task[]>(
     token && selectedId ? `${API_URL}/api/projects/${selectedId}/tasks` : null,
     authHeaders(token)
@@ -73,6 +78,9 @@ export default function DashboardPage() {
   // effect fills it when GET /api/projects/:id/tasks returns.
   useEffect(() => {
     setTasks([]);
+    setTaskQuery("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
   }, [selectedId]);
 
   useEffect(() => {
@@ -82,6 +90,7 @@ export default function DashboardPage() {
   }, [taskList.data]);
 
   const selectedProject = projects.find((project) => project._id === selectedId) ?? null;
+  const visibleTasks = tasks.filter((task) => matchesTask(task, taskQuery, statusFilter, priorityFilter));
 
   function openCreateProject() {
     setEditingProject(false);
@@ -380,8 +389,23 @@ export default function DashboardPage() {
               ) : (
                 <>
                   <BoardOverview tasks={tasks} project={selectedProject} />
+                  <TaskFilters
+                    query={taskQuery}
+                    status={statusFilter}
+                    priority={priorityFilter}
+                    shown={visibleTasks.length}
+                    total={tasks.length}
+                    onQuery={setTaskQuery}
+                    onStatus={setStatusFilter}
+                    onPriority={setPriorityFilter}
+                    onClear={() => {
+                      setTaskQuery("");
+                      setStatusFilter("all");
+                      setPriorityFilter("all");
+                    }}
+                  />
                   <TaskBoard
-                    tasks={tasks}
+                    tasks={visibleTasks}
                     canEdit={selectedProject.access !== "view" && projectStatus(selectedProject) === "active"}
                     onMove={handleMoveTask}
                     onEdit={openEditTask}

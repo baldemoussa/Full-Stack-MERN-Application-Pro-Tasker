@@ -117,10 +117,11 @@ The left side of the dashboard is **My projects**.
 
 With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
 
-- **New task** asks for a title, a description, and a status. The status starts as **To Do**. View-only people do not see this button.
+- **New task** asks for a title, a description, a priority, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. View-only people do not see this button.
+- **Search tasks** matches the title or the description. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
 - An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
-- **Edit** on a card changes the title, description, and status.
+- **Edit** on a card changes the title, description, priority, and status. Each card shows its priority.
 - The comment icon opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
 - **Delete** on a card asks for confirmation, then removes that task and its comments.
 
@@ -228,6 +229,7 @@ erDiagram
     string title
     string description
     string status
+    string priority
     ObjectId project FK
   }
   COMMENT {
@@ -414,7 +416,7 @@ PUT or DELETE /api/projects/:projectId/tasks/:taskId
   -> 200 updated task, or { message: "Task deleted!" }
 ```
 
-`status` is the only field that changes which column a task belongs to. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. An unknown status fails Mongoose validation and returns **400**. The default on create is `To Do`.
+`status` is the only field that changes which column a task belongs to. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. An unknown status fails Mongoose validation and returns **400**. The default on create is `To Do`. `priority` is `Low`, `Medium`, or `High`, and defaults to `Medium`. The board search and filters run in the browser on the tasks already loaded for the open project.
 
 ### What each layer is allowed to do
 
@@ -495,7 +497,7 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | Component | Receives | Sends upward | Does not receive |
 | --- | --- | --- | --- |
 | `ProjectForm` | `initialValues`, `submitLabel`, `submitting`, `error` | `onSubmit({ name, description })`, `onCancel` | Token, project id |
-| `TaskForm` | The same, plus a status field | `onSubmit({ title, description, status })` | Token, project id |
+| `TaskForm` | Title, description, priority, and status | `onSubmit({ title, description, status, priority })` | Token, project id |
 | `ProjectCard` | `project`, `selected` | `onSelect(projectId)` | The task list |
 | `TaskBoard` | `tasks`, `canEdit` | `onMove`, `onEdit`, `onDelete` | The token |
 | `TaskColumn` | `status`, the tasks for that status, `canEdit` | `onEdit`, `onDelete` | Other columns |
@@ -515,7 +517,7 @@ TaskForm.onSubmit(body)
   -> DashboardPage.handleSaveTask
        -> taskApi.put or taskApi.post
             URL includes selectedId and, for edit, the task id
-            body is title, description, and status
+            body is title, description, status, and priority
        -> setTasks replaces or appends the returned task
        -> close the modal
 ```
@@ -629,6 +631,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `title` | Required, trimmed |
 | `description` | Required, trimmed |
 | `status` | `To Do`, `In Progress`, `Done`, or `Hold`. Default `To Do` |
+| `priority` | `Low`, `Medium`, or `High`. Default `Medium`. Tasks saved before this field existed are returned as `Medium` |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
 A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
@@ -932,11 +935,12 @@ All of these require a token. The server checks the caller's access on the paren
 {
   "title": "Draft the demo script",
   "description": "Outline register, projects, and tasks",
-  "status": "To Do"
+  "status": "To Do",
+  "priority": "High"
 }
 ```
 
-`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`.
+`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`.
 
 **201** returns the created task.
 
@@ -944,7 +948,7 @@ All of these require a token. The server checks the caller's access on the paren
 | --- | --- | --- |
 | Project missing | 404 | `No project found with this id!` |
 | Caller cannot edit the project | 403 | `User is not authorized to create a task for this project.` |
-| Missing title or description, or a bad status | 400 | Mongoose validation error |
+| Missing title or description, or a bad status or priority | 400 | Mongoose validation error |
 
 #### GET `/api/projects/:projectId/tasks`
 
