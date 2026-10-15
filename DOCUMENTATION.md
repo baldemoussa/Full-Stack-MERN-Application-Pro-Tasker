@@ -118,7 +118,7 @@ The left side of the dashboard is **My projects**.
 
 ### Tasks
 
-With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
+With a project selected, the board shows **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is last, for tasks that are paused. On a small window each status is its own row. On a wide window the four statuses sit side by side.
 
 - **New task** asks for a title, a description, a priority, an optional due date, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists the owner and every collaborator. Check one or more people. Leave them all unchecked to leave the task unassigned. View-only people do not see this button.
 - **Search tasks** matches the title, the description, or an assignee's name. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
@@ -134,7 +134,7 @@ An empty column on a board you can edit says **Drop a task here**. A view-only c
 
 The sun icon switches to night mode. The moon icon switches to light mode. The choice is kept in this browser under the name `pro-tasker-theme` and applies on the next visit, including after logout.
 
-The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. Fields and cards are rounded. The header stays at the top and the product name returns to the dashboard. Columns stay in one row of four and scroll sideways when the window is narrow. An empty column you can edit says **Drop a task here**. An overdue card has a rose border.
+The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. Fields and cards are rounded. The header stays at the top and the product name returns to the dashboard. On a small window each status is its own row. On a wide window the four statuses sit side by side. An empty column you can edit says **Drop a task here**. An overdue card has a rose border.
 
 ### Screenshots
 
@@ -1122,7 +1122,7 @@ From the `Frontend` directory:
 
 `ThemeProvider` wraps the application in a `dark` class when night mode is on. Tailwind is configured with `darkMode: "class"`, so night styles apply to descendants of that class. The preference is `localStorage` key `pro-tasker-theme`, with values `dark` or `light`.
 
-The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. Columns stay in one row of four and scroll sideways when the window is narrow, so a card does not get crushed. An empty column says **Drop a task here**. An overdue card has a rose border. On a narrow screen the project list is height-limited and the actions stack under the title.
+The page background is a soft stone gradient. Sign-in screens name the product and say what the account is for. On a small window each status is its own row. On a wide window the four statuses sit side by side. An empty column says **Drop a task here**. An overdue card has a rose border. On a narrow screen the project list is height-limited and the actions stack under the title.
 
 ---
 
@@ -1304,7 +1304,7 @@ These items were recorded as future work. They are not part of this delivery.
 | Sharing | Owner invites a registered email as view or edit |
 | Drag and drop | Moving a card between columns saves the new status |
 | Light and night mode | Saved in the browser |
-| Desktop and phone layout | Four columns stay in one row and scroll sideways on a narrow window |
+| Desktop and phone layout | Four columns sit side by side on a wide window and stack as rows on a small window |
 | Refresh on `/dashboard` and `/login` | Rewrite to `index.html` |
 | This document | `DOCUMENTATION.md` |
 | Secrets in the repository | None. `.env` files stay on the machine and on Render |

@@ -75,9 +75,9 @@ export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete, on
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveTask(null)}
     >
-      {/* Four columns stay in one row. The row scrolls sideways when the window is narrow. */}
-      <div className="mt-6 overflow-x-auto pb-2">
-        <div className="grid min-w-[68rem] flex-1 grid-cols-4 content-stretch gap-4">
+      {/* One column per row on a small window. From xl up they sit side by side. */}
+      <div className="mt-6">
+        <div className="grid grid-cols-1 content-stretch gap-4 xl:grid-cols-4">
         {STATUSES.map((status) => (
           <TaskColumn
             key={status}
