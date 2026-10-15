@@ -9,7 +9,28 @@ function presentTask(task) {
     plain.priority = 'Medium';
   }
   plain.assignees = (plain.assignees || []).filter(Boolean);
+  plain.dueDate = plain.dueDate ? new Date(plain.dueDate).toISOString().slice(0, 10) : null;
   return plain;
+}
+
+function readDueDate(value) {
+  if (value === undefined) {
+    return { skip: true };
+  }
+  if (value === null || value === '') {
+    return { date: null };
+  }
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return { error: 'Due date must be a valid date.' };
+  }
+
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12));
+  const sameDay = date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  if (!sameDay) {
+    return { error: 'Due date must be a valid date.' };
+  }
+  return { date };
 }
 
 function memberIds(project) {
@@ -48,15 +69,20 @@ async function createTask(req, res) {
       return res.status(403).json({ message: inactiveMessage(project) });
     }
 
-    const { assignees, ...fields } = req.body;
+    const { assignees, dueDate, ...fields } = req.body;
     const assigned = assigneeList(assignees ?? [], project);
     if (assigned.error) {
       return res.status(400).json({ message: assigned.error });
+    }
+    const due = readDueDate(dueDate === undefined ? null : dueDate);
+    if (due.error) {
+      return res.status(400).json({ message: due.error });
     }
 
     const task = await Task.create({
       ...fields,
       assignees: assigned.ids,
+      dueDate: due.date,
       project: req.params.projectId,
     });
     await task.populate('assignees', assigneeFields);
@@ -109,6 +135,13 @@ async function updateTask(req, res) {
         return res.status(400).json({ message: assigned.error });
       }
       updates.assignees = assigned.ids;
+    }
+    if (updates.dueDate !== undefined) {
+      const due = readDueDate(updates.dueDate);
+      if (due.error) {
+        return res.status(400).json({ message: due.error });
+      }
+      updates.dueDate = due.date;
     }
     const updatedTask = await Task.findByIdAndUpdate(req.params.taskId, updates, {
       returnDocument: 'after',

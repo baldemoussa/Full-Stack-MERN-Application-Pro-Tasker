@@ -58,6 +58,7 @@ export interface Task {
   description: string
   status: TaskStatus
   priority?: TaskPriority
+  dueDate?: string | null
   assignees?: CollaboratorUser[]
   project: string
   createdAt: string
@@ -107,6 +108,7 @@ export interface TaskBody {
   description?: string
   status?: TaskStatus
   priority?: TaskPriority
+  dueDate?: string | null
   assignees?: string[]
 }
 

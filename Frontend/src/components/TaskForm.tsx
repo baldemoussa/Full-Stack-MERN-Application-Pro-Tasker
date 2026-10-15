@@ -21,6 +21,7 @@ export default function TaskForm({
   const [description, setDescription] = useState(initialValues?.description ?? "");
   const [status, setStatus] = useState<TaskStatus>(initialValues?.status ?? "To Do");
   const [priority, setPriority] = useState<TaskPriority>(initialValues?.priority ?? "Medium");
+  const [dueDate, setDueDate] = useState(initialValues?.dueDate ?? "");
   const [assignees, setAssignees] = useState<string[]>(initialValues?.assignees ?? []);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -38,7 +39,14 @@ export default function TaskForm({
     }
 
     setFormError(null);
-    onSubmit({ title: title.trim(), description: description.trim(), status, priority, assignees });
+    onSubmit({
+      title: title.trim(),
+      description: description.trim(),
+      status,
+      priority,
+      dueDate: dueDate || null,
+      assignees,
+    });
   }
 
   return (
@@ -75,6 +83,10 @@ export default function TaskForm({
             </option>
           ))}
         </select>
+      </label>
+      <label className="block">
+        <span>Due date</span>
+        <input className="field" type="date" value={dueDate ?? ""} onChange={(event) => setDueDate(event.target.value)} />
       </label>
       <fieldset>
         <legend>Assign to</legend>

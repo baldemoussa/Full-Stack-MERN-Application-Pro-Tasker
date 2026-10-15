@@ -55,6 +55,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - Invite a registered user to a project as **view** or **edit**. The owner can change that permission or remove the person.
 - Create, view, update, and delete tasks under a project when the caller can edit.
 - A board with four columns. Drag a card onto another column, or change the status in **Edit**.
+- An analytics page for the selected project: completion, a status pie chart, a 14-day trend line, priority, due dates, and who the tasks are assigned to.
 - Deleting a project also deletes that project's tasks.
 - Loading indicators while lists and saves are in progress.
 - Error messages from the API, shown on the form that caused them.
@@ -68,7 +69,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
 - Automated test suite. The backend `npm test` script is a placeholder.
-- Hosted file uploads, due dates, or notifications. A profile photo is stored on the user document.
+- Hosted file uploads or notifications. A profile photo is stored on the user document.
 
 ---
 
@@ -113,16 +114,17 @@ The left side of the dashboard is **My projects**.
 - **Archive** is available to the owner of an open or closed project. The project moves to the **Archived** list and the board stays read only.
 - **Reopen** is available to the owner of a closed or archived project. The project returns to the open list and editing is allowed again.
 - **Delete** asks for confirmation and is only shown to the owner. Confirming removes the project, every task on it, and every comment on those tasks.
+- The chart icon opens **Analytics** for the project that is open. A pie chart shows how tasks split by status. A trend line shows how many tasks the project had on each of the last 14 days. The page also shows completion, overdue tasks, priority, and how many tasks each assigned person has finished. The project menu switches to another project. **Back to the board** returns to the dashboard.
 
 ### Tasks
 
 With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
 
-- **New task** asks for a title, a description, a priority, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists the owner and every collaborator. Check one or more people. Leave them all unchecked to leave the task unassigned. View-only people do not see this button.
+- **New task** asks for a title, a description, a priority, an optional due date, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists the owner and every collaborator. Check one or more people. Leave them all unchecked to leave the task unassigned. View-only people do not see this button.
 - **Search tasks** matches the title, the description, or an assignee's name. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
 - An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
-- **Edit** on a card changes the title, description, priority, assignees, and status. Each card shows its priority and the photos of the people assigned to it. Removing a collaborator also removes that person from every task on the project.
+- **Edit** on a card changes the title, description, priority, due date, assignees, and status. Each card shows its priority, its due date, and the photos of the people assigned to it. A due date before today is marked **Overdue** until the task is **Done**. Clearing the due date removes it. Removing a collaborator also removes that person from every task on the project.
 - The comment icon opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
 - **Delete** on a card asks for confirmation, then removes that task and its comments.
 
@@ -139,6 +141,8 @@ The sun icon switches to night mode. The moon icon switches to light mode. The c
 | `/login` | Login form. A signed-in person is sent to the dashboard. |
 | `/register` | Registration form. A signed-in person is sent to the dashboard. |
 | `/dashboard` | Project list and the task board. A guest is sent to login. |
+| `/analytics` | Analytics for the first open project. A guest is sent to login. |
+| `/analytics/:projectId` | Analytics for that project. Anyone who can view the project can open it. |
 | `/projects/:projectId` | A signed-in placeholder page that shows the id and **Back to projects**, which opens the dashboard. The board itself is the dashboard. |
 | Any other path | Redirects to `/dashboard`. |
 
@@ -231,6 +235,7 @@ erDiagram
     string description
     string status
     string priority
+    date dueDate
     ObjectId project FK
     ObjectId assignees FK
   }
@@ -566,7 +571,7 @@ Frontend/
   src/components/            Header, forms, cards, columns, modal, alerts
   src/context/               Auth and theme contracts
   src/hooks/                 useApi for writes, useFetch for reads
-  src/pages/                 Login, register, dashboard, project placeholder
+  src/pages/                 Login, register, dashboard, analytics, project placeholder
   src/providers/             Session state and light/night mode
   src/types/index.ts         Shared TypeScript types
   src/utils/                 Token storage and auth headers
@@ -634,6 +639,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `description` | Required, trimmed |
 | `status` | `To Do`, `In Progress`, `Done`, or `Hold`. Default `To Do` |
 | `priority` | `Low`, `Medium`, or `High`. Default `Medium`. Tasks saved before this field existed are returned as `Medium` |
+| `dueDate` | Optional calendar date, stored as `YYYY-MM-DD`. Empty means no due date. A status-only update leaves it in place |
 | `assignees` | List of user ids. Each person must be the project owner or a collaborator. Empty by default. The list response includes each person's name, position, and profile photo |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
@@ -940,11 +946,12 @@ All of these require a token. The server checks the caller's access on the paren
   "description": "Outline register, projects, and tasks",
   "status": "To Do",
   "priority": "High",
+  "dueDate": "2026-10-20",
   "assignees": ["USER_ID"]
 }
 ```
 
-`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`. `assignees` may be omitted and then defaults to an empty list. Each id must belong to the project owner or a collaborator. The same person is stored once. A status-only update, such as a drag, leaves the current assignees in place.
+`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`. `assignees` may be omitted and then defaults to an empty list. Each id must belong to the project owner or a collaborator. The same person is stored once. `dueDate` may be omitted or `null`. It must be `YYYY-MM-DD` when it is present. A status-only update, such as a drag, leaves the current assignees and due date in place.
 
 **201** returns the created task.
 
@@ -955,6 +962,7 @@ All of these require a token. The server checks the caller's access on the paren
 | Missing title or description, or a bad status or priority | 400 | Mongoose validation error |
 | Assignee is not the owner or a collaborator | 400 | `Tasks can only be assigned to the owner or a collaborator.` |
 | `assignees` is not a list | 400 | `Assignees must be a list of people on this project.` |
+| Bad due date | 400 | `Due date must be a valid date.` |
 
 #### GET `/api/projects/:projectId/tasks`
 
@@ -1072,6 +1080,7 @@ From the `Frontend` directory:
 | `useApi` | `POST`, `PUT`, and `DELETE`. Prefixes `VITE_API_URL`, sends the bearer token, and returns `null` on failure |
 | `useFetch` | `GET`. A null URL skips the request |
 | `DashboardPage` | Project list, board, and the create, edit, and delete dialogs |
+| `AnalyticsPage` | Status, priority, completion, and assignment numbers for one project |
 | `ProtectedRoute` | Guests go to `/login`. Waits while the session is restoring |
 | `GuestRoute` | Signed-in people go to `/dashboard` |
 

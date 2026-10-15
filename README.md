@@ -42,6 +42,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Search the project list by name or description. Search the open board by title, description, or assignee, and filter it by status or priority.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
 - An overview shows the owner, the number of invited contributors, and counts Total, To Do, In Progress, Done, and Hold for the open project.
+- Analytics opens for the selected project and shows completion, a status pie chart, a 14-day trend line, priority, overdue tasks, and assignment totals.
 - Drag a card onto another column. The new status is saved. Edit still changes status too.
 - Deleting a project also deletes that project's tasks and comments. Only the owner can delete a project.
 - Light mode and night mode. The choice is saved in `localStorage`.
@@ -169,15 +170,15 @@ The owner is stored as `user`. The client cannot change that field or the collab
 
 | Method | Path | Body |
 | --- | --- | --- |
-| POST | `/api/projects/:projectId/tasks` | `title`, `description`, `status`, `priority`, `assignees` |
+| POST | `/api/projects/:projectId/tasks` | `title`, `description`, `status`, `priority`, `dueDate`, `assignees` |
 | GET | `/api/projects/:projectId/tasks` | — |
-| PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status`, `priority`, `assignees` |
+| PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status`, `priority`, `dueDate`, `assignees` |
 | DELETE | `/api/projects/:projectId/tasks/:taskId` | — |
 | GET | `/api/projects/:projectId/tasks/:taskId/comments` | — |
 | POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
 | DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
 
-`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for the owner or a collaborator. It defaults to an empty list. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
+`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for the owner or a collaborator. It defaults to an empty list. `dueDate` is an optional `YYYY-MM-DD` date. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
 
 ## How a request moves
 

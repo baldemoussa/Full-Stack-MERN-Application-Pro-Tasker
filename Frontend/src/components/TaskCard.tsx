@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskCardProps, TaskPriority } from "../types";
 import { CommentIcon, PencilIcon, TrashIcon } from "./Icons";
 import ProfileAvatar from "./ProfileAvatar";
+import { formatDueDate, isOverdue } from "../utils/dueDate";
 import { taskPriority } from "../utils/taskFilters";
 
 const priorityTone: Record<TaskPriority, string> = {
@@ -17,11 +18,18 @@ export function TaskCardFace({ task }: { task: Task }) {
   const shown = assignees.slice(0, 4);
   const extra = assignees.length - shown.length;
   const names = assignees.map((person) => person.fullName || person.username).join(", ");
+  const overdue = isOverdue(task);
   return (
     <>
       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${priorityTone[priority]}`}>{priority}</span>
       <h3 className="mt-2 break-words text-lg font-bold leading-tight">{task.title}</h3>
       <p className="mt-1 line-clamp-3 break-words text-sm text-stone-500 dark:text-stone-400">{task.description}</p>
+      {task.dueDate && (
+        <p className={`mt-2 text-xs font-medium ${overdue ? "text-rose-700 dark:text-rose-300" : "text-stone-500 dark:text-stone-400"}`}>
+          Due {formatDueDate(task.dueDate)}
+          {overdue ? " · Overdue" : ""}
+        </p>
+      )}
       {assignees.length > 0 && (
         <div className="mt-3 flex items-center" title={names} aria-label={`Assigned to ${names}`}>
           {shown.map((person) => (

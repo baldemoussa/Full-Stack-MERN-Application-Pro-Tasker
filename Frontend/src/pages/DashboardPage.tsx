@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Alert from "../components/Alert";
-import { ArchiveIcon, IconButton, LockIcon, PencilIcon, PlusIcon, ReopenIcon, ShareIcon, TrashIcon } from "../components/Icons";
+import { ArchiveIcon, ChartIcon, IconButton, LockIcon, PencilIcon, PlusIcon, ReopenIcon, ShareIcon, TrashIcon } from "../components/Icons";
 import BoardOverview from "../components/BoardOverview";
 import AppHeader from "../components/AppHeader";
 import CollaboratorForm from "../components/CollaboratorForm";
@@ -354,6 +355,14 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Link
+                    to={`/analytics/${selectedProject._id}`}
+                    aria-label="Analytics"
+                    title="Analytics"
+                    className="inline-flex shrink-0 items-center justify-center rounded border border-stone-300 p-2 text-stone-700 dark:border-stone-600 dark:text-stone-200"
+                  >
+                    <ChartIcon />
+                  </Link>
                   {selectedProject.access === "owner" && projectStatus(selectedProject) === "active" && (
                     <IconButton label="Share" onClick={() => setShareOpen(true)}>
                       <ShareIcon />
@@ -496,6 +505,7 @@ export default function DashboardPage() {
                     description: editingTask.description,
                     status: editingTask.status,
                     priority: editingTask.priority ?? "Medium",
+                    dueDate: editingTask.dueDate ?? "",
                     assignees: (editingTask.assignees ?? []).map((person) => person._id),
                   }
                 : undefined

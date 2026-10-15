@@ -23,6 +23,10 @@ const taskSchema = new Schema({
         enum: ['Low', 'Medium', 'High'],
         default: 'Medium',
     },
+    dueDate: {
+        type: Date,
+        default: null,
+    },
     assignees: [{
         type: Schema.Types.ObjectId,
         ref: 'User',
