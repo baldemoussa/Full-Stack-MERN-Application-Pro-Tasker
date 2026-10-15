@@ -120,7 +120,7 @@ The left side of the dashboard is **My projects**.
 
 With a project selected, the board shows **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is last, for tasks that are paused. On a small window each status is its own row. On a wide window the four statuses sit side by side.
 
-- **New task** asks for a title, a description, a priority, an optional due date, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists the owner and every collaborator. Check one or more people. Leave them all unchecked to leave the task unassigned. View-only people do not see this button.
+- **New task** asks for a title, a description, a priority, an optional due date, people to assign, and a status. Priority is **Low**, **Medium**, or **High**, and starts as **Medium**. The status starts as **To Do**. **Assign to** lists only the people the project was shared with. The owner is not in that list. Check one or more people. Leave them all unchecked to leave the task unassigned. If nobody has been invited, the form says to share the project first. View-only people do not see this button.
 - **Search tasks** matches the title, the description, or an assignee's name. The **Status** and **Priority** menus narrow the board. **Clear** removes the search and both filters. The overview counts stay for the whole project. Switching projects clears the search.
 - An overview above the columns shows the **Owner**, the number of **Contributors** (people invited to the project), and counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
@@ -672,7 +672,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | `status` | `To Do`, `In Progress`, `Done`, or `Hold`. Default `To Do` |
 | `priority` | `Low`, `Medium`, or `High`. Default `Medium`. Tasks saved before this field existed are returned as `Medium` |
 | `dueDate` | Optional calendar date, stored as `YYYY-MM-DD`. Empty means no due date. A status-only update leaves it in place |
-| `assignees` | List of user ids. Each person must be the project owner or a collaborator. Empty by default. The list response includes each person's name, position, and profile photo |
+| `assignees` | List of user ids. Each person must be someone the project was shared with. The owner cannot be assigned. Empty by default. The list response includes each person's name, position, and profile photo, and leaves out anyone who is no longer a collaborator |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
 A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
@@ -983,7 +983,7 @@ All of these require a token. The server checks the caller's access on the paren
 }
 ```
 
-`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`. `assignees` may be omitted and then defaults to an empty list. Each id must belong to the project owner or a collaborator. The same person is stored once. `dueDate` may be omitted or `null`. It must be `YYYY-MM-DD` when it is present. A status-only update, such as a drag, leaves the current assignees and due date in place.
+`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. `priority` may be omitted and then defaults to `Medium`. Allowed values are `Low`, `Medium`, and `High`. `assignees` may be omitted and then defaults to an empty list. Each id must be a collaborator the project was shared with. The project owner is rejected. The same person is stored once. `dueDate` may be omitted or `null`. It must be `YYYY-MM-DD` when it is present. A status-only update, such as a drag, leaves the current assignees and due date in place. A response still omits an assignee who is no longer a collaborator.
 
 **201** returns the created task.
 
@@ -992,8 +992,8 @@ All of these require a token. The server checks the caller's access on the paren
 | Project missing | 404 | `No project found with this id!` |
 | Caller cannot edit the project | 403 | `User is not authorized to create a task for this project.` |
 | Missing title or description, or a bad status or priority | 400 | Mongoose validation error |
-| Assignee is not the owner or a collaborator | 400 | `Tasks can only be assigned to the owner or a collaborator.` |
-| `assignees` is not a list | 400 | `Assignees must be a list of people on this project.` |
+| Assignee is the owner, or is not a collaborator | 400 | `Tasks can only be assigned to someone this project was shared with.` |
+| `assignees` is not a list | 400 | `Assignees must be a list of people this project was shared with.` |
 | Bad due date | 400 | `Due date must be a valid date.` |
 
 #### GET `/api/projects/:projectId/tasks`

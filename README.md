@@ -48,7 +48,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours. A signed-in user can update their profile and change their password.
 - Create, read, update, and delete projects. The owner can close, archive, or reopen a project. A closed or archived project stays readable and cannot be edited until it is reopened.
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
-- Create, read, update, and delete tasks nested under a project. Each task has a priority of Low, Medium, or High, and can be assigned to one or more people on that project. View-only collaborators can read the board and add comments.
+- Create, read, update, and delete tasks nested under a project. Each task has a priority of Low, Medium, or High, and can be assigned to one or more people the project was shared with. View-only collaborators can read the board and add comments.
 - Search the project list by name or description. Search the open board by title, description, or assignee, and filter it by status or priority.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
 - An overview shows the owner, the number of invited contributors, and counts Total, To Do, In Progress, Done, and Hold for the open project.
@@ -188,7 +188,7 @@ The owner is stored as `user`. The client cannot change that field or the collab
 | POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
 | DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
 
-`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for the owner or a collaborator. It defaults to an empty list. `dueDate` is an optional `YYYY-MM-DD` date. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
+`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for people the project was shared with. The owner cannot be assigned. It defaults to an empty list. `dueDate` is an optional `YYYY-MM-DD` date. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
 
 ## How a request moves
 

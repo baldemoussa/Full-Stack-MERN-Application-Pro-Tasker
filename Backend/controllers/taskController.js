@@ -1,16 +1,17 @@
-// Task CRUD for one project. Assignees must already belong to the project. A drag sends status only and leaves the other fields alone.
+// Task CRUD for one project. A task can be assigned only to someone the project was shared with. A drag sends status only and leaves the other fields alone.
 const { Comment, Project, Task } = require('../models');
 const { accessLevel, canEdit, canView, idOf, inactiveMessage, isActive } = require('../utils/access');
 
 const assigneeFields = 'username email fullName position profilePhoto';
 
 // Older tasks have no priority. The board treats those as Medium.
-function presentTask(task) {
+function presentTask(task, project) {
   const plain = task.toObject();
   if (!plain.priority) {
     plain.priority = 'Medium';
   }
-  plain.assignees = (plain.assignees || []).filter(Boolean);
+  const shared = new Set(sharedIds(project));
+  plain.assignees = (plain.assignees || []).filter((person) => person && shared.has(idOf(person)));
   plain.dueDate = plain.dueDate ? new Date(plain.dueDate).toISOString().slice(0, 10) : null;
   return plain;
 }
@@ -36,22 +37,22 @@ function readDueDate(value) {
   return { date };
 }
 
-function memberIds(project) {
-  return [idOf(project.user), ...(project.collaborators || []).map((entry) => idOf(entry.user))].filter(Boolean);
+function sharedIds(project) {
+  return (project.collaborators || []).map((entry) => idOf(entry.user)).filter(Boolean);
 }
 
-// Only the owner and current collaborators can be assigned. Duplicates are dropped.
+// Only people the project was shared with can be assigned. Duplicates are dropped.
 function assigneeList(value, project) {
   if (!Array.isArray(value)) {
-    return { error: 'Assignees must be a list of people on this project.' };
+    return { error: 'Assignees must be a list of people this project was shared with.' };
   }
 
-  const allowed = new Set(memberIds(project));
+  const allowed = new Set(sharedIds(project));
   const ids = [];
   for (const item of value) {
     const id = idOf(item);
     if (!id || !allowed.has(id)) {
-      return { error: 'Tasks can only be assigned to the owner or a collaborator.' };
+      return { error: 'Tasks can only be assigned to someone this project was shared with.' };
     }
     if (!ids.includes(id)) {
       ids.push(id);
@@ -90,7 +91,7 @@ async function createTask(req, res) {
       project: req.params.projectId,
     });
     await task.populate('assignees', assigneeFields);
-    res.status(201).json(presentTask(task));
+    res.status(201).json(presentTask(task, project));
   } catch (err) {
     res.status(400).json(err);
   }
@@ -107,7 +108,7 @@ async function getAllTasks(req, res) {
     }
 
     const tasks = await Task.find({ project: req.params.projectId }).populate('assignees', assigneeFields);
-    res.json(tasks.map(presentTask));
+    res.json(tasks.map((task) => presentTask(task, project)));
   } catch (err) {
     res.status(500).json(err);
   }
@@ -152,7 +153,7 @@ async function updateTask(req, res) {
       runValidators: true,
     });
     await updatedTask.populate('assignees', assigneeFields);
-    res.json(presentTask(updatedTask));
+    res.json(presentTask(updatedTask, project));
   } catch (err) {
     res.status(400).json(err);
   }

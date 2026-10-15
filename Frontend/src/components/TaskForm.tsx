@@ -23,7 +23,10 @@ export default function TaskForm({
   const [status, setStatus] = useState<TaskStatus>(initialValues?.status ?? "To Do");
   const [priority, setPriority] = useState<TaskPriority>(initialValues?.priority ?? "Medium");
   const [dueDate, setDueDate] = useState(initialValues?.dueDate ?? "");
-  const [assignees, setAssignees] = useState<string[]>(initialValues?.assignees ?? []);
+  const memberIds = new Set(members.map((member) => member._id));
+  const [assignees, setAssignees] = useState<string[]>(
+    (initialValues?.assignees ?? []).filter((id) => memberIds.has(id)),
+  );
   const [formError, setFormError] = useState<string | null>(null);
 
   function toggleAssignee(userId: string) {
@@ -91,9 +94,9 @@ export default function TaskForm({
       </label>
       <fieldset>
         <legend>Assign to</legend>
-        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Select one or more people on this project.</p>
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Select one or more people this project was shared with.</p>
         {members.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">No people are available to assign.</p>
+          <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">Share this project with someone before assigning a task.</p>
         ) : (
           <ul className="mt-2 space-y-2">
             {members.map((member) => {
