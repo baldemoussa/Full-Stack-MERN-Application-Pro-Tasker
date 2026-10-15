@@ -12,7 +12,7 @@
 | LinkedIn | https://www.linkedin.com/in/2mb/ |
 | Repository | https://github.com/baldemoussa/Full-Stack-MERN-Application-Pro-Tasker |
 
-This document describes the delivered application: what it does, how a person uses it, how it is built, how to run it, and how it is deployed. It is the handover record for the client. It does not contain passwords, database credentials, or the JWT signing secret.
+This document describes the delivered application: what it does, how a person uses it, how it is built, how to run it, and how it is deployed. It is the handover record for the client. It does not contain database credentials or the JWT signing secret. The two demo account passwords are listed in Section 13 so a reviewer can sign in.
 
 ---
 
@@ -597,6 +597,7 @@ Backend/
   routes/index.js            Health check, /api mount, 404
   routes/api/                /api/users and /api/projects
   utils/auth.js              Sign a token and require one
+  scripts/load-sample-data.js  Loads sample projects through the running API
   server.js                  Express app, CORS, listen
   package.json
 Frontend/
@@ -1182,6 +1183,53 @@ Open the URL Vite prints, usually http://localhost:5173.
 7. Log in. The project and task are still there.
 8. Delete the task, then delete the project.
 
+### Sample data
+
+The API must already be running. Both demo people must already have accounts. The loader signs in through `POST /api/users/login` and creates projects, tasks, comments, one closed project, and one archived project. It does not create accounts.
+
+| Full name | Username | Email | Password | Role in the sample |
+| --- | --- | --- | --- | --- |
+| User Tester | user | user@demo.test | user2026 | Owner. Set this as `SAMPLE_OWNER_EMAIL` and `SAMPLE_OWNER_PASSWORD`. |
+| Admin Lead | admin | admin@demo.test | admin2026 | Partner. Set this as `SAMPLE_PARTNER_EMAIL` and `SAMPLE_PARTNER_PASSWORD`. |
+
+From the `Backend` directory, set the four variables, then run the loader. In PowerShell:
+
+```powershell
+$env:SAMPLE_OWNER_EMAIL = "user@demo.test"
+$env:SAMPLE_OWNER_PASSWORD = "user2026"
+$env:SAMPLE_PARTNER_EMAIL = "admin@demo.test"
+$env:SAMPLE_PARTNER_PASSWORD = "admin2026"
+npm run sample
+```
+
+In bash:
+
+```bash
+export SAMPLE_OWNER_EMAIL="user@demo.test"
+export SAMPLE_OWNER_PASSWORD="user2026"
+export SAMPLE_PARTNER_EMAIL="admin@demo.test"
+export SAMPLE_PARTNER_PASSWORD="admin2026"
+npm run sample
+```
+
+`SAMPLE_API_URL` is optional. It defaults to `http://localhost:3000`. Point it at another running API when the data should land there instead.
+
+User Tester is the owner in the loader. Admin Lead is the partner. Tasks are assigned only to the person a project was shared with.
+
+| Project | Owner | Partner access | What it shows |
+| --- | --- | --- | --- |
+| Product launch | User Tester | Admin Lead can edit | All four columns, an overdue task, and a comment with a reply |
+| Hiring pipeline | User Tester | Admin Lead is view only | A board the partner can read and comment on |
+| Studio notes | User Tester | Private | A project with no collaborators |
+| Winter campaign | User Tester | Admin Lead can edit | An archived board |
+| Website Redesign | Admin Lead | User Tester can edit | Extra tasks and a comment thread, added only when that project already exists |
+| Sprint retro | Admin Lead | User Tester is view only | A closed, read-only board |
+| Reading list | Admin Lead | Private | A second private project |
+
+Running `npm run sample` again skips a project, task, or comment that is already there. A project that is already closed or archived is left as it is. **Website Redesign** is the one existing project the loader expects the partner to own. If that project is missing, the loader says so and continues with the others.
+
+Sign in as **user@demo.test** or **admin@demo.test** and open the dashboard. Each person sees the projects they own and the projects shared with them.
+
 ---
 
 ## 14. Production deployment
@@ -1265,7 +1313,7 @@ Data lives in the Atlas cluster named by `MONGO_URI`. Render disks do not store 
 
 ### Development data
 
-Accounts and sample projects created during development are in the same database the live API uses. Before a production launch for a real audience, review the `users`, `projects`, and `tasks` collections and remove records that should not remain.
+Accounts and sample projects created during development are in the same database the live API uses. Section 13 explains how to load that sample again with `npm run sample`. Before a production launch for a real audience, review the `users`, `projects`, and `tasks` collections and remove records that should not remain.
 
 ---
 

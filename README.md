@@ -75,6 +75,7 @@ Backend/
   routes/api/               /api/users and /api/projects
   utils/auth.js             Sign a token and require one on protected routes
   utils/access.js           Owner, edit, and view checks
+  scripts/load-sample-data.js  Sample projects, tasks, and comments
   server.js
 Frontend/
   src/components/           Forms, cards, drag-and-drop board, share form, modal, theme toggle
@@ -131,6 +132,17 @@ npm run dev
 ```
 
 Open the URL Vite prints, usually `http://localhost:5173`.
+
+### Sample data
+
+Start the API first. The two demo accounts must already exist.
+
+| Full name | Username | Email | Password |
+| --- | --- | --- | --- |
+| User Tester | user | user@demo.test | user2026 |
+| Admin Lead | admin | admin@demo.test | admin2026 |
+
+From `Backend`, set `SAMPLE_OWNER_EMAIL` and `SAMPLE_OWNER_PASSWORD` to User Tester, and `SAMPLE_PARTNER_EMAIL` and `SAMPLE_PARTNER_PASSWORD` to Admin Lead, then run `npm run sample`. The command signs in and adds shared boards, tasks, comments, a closed project, and an archived project. Run it again and it skips anything already there. The full list is in `DOCUMENTATION.md`, Section 13.
 
 ## App routes
 
