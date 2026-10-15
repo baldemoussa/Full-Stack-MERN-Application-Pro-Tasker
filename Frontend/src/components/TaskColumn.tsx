@@ -7,12 +7,14 @@ import TaskCard from "./TaskCard";
 const columnTone: Record<TaskStatus, string> = {
   "To Do": "border-stone-200 bg-gradient-to-br from-stone-50 to-stone-100 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800",
   "In Progress": "border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 dark:border-amber-900 dark:from-amber-950 dark:to-amber-900",
+  Hold: "border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 dark:border-sky-900 dark:from-sky-950 dark:to-sky-900",
   Done: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:border-emerald-900 dark:from-emerald-950 dark:to-emerald-900",
 };
 
 const headerTone: Record<TaskStatus, string> = {
   "To Do": "border-stone-200 text-stone-700 dark:border-stone-700 dark:text-stone-200",
   "In Progress": "border-amber-200 text-amber-800 dark:border-amber-900 dark:text-amber-300",
+  Hold: "border-sky-200 text-sky-800 dark:border-sky-900 dark:text-sky-300",
   Done: "border-emerald-200 text-emerald-800 dark:border-emerald-900 dark:text-emerald-300",
 };
 

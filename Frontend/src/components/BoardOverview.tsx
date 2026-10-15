@@ -34,6 +34,13 @@ const cards = [
     valueTone: "text-emerald-900 dark:text-emerald-100",
     value: (tasks: Task[]) => count(tasks, "Done"),
   },
+  {
+    label: "Hold",
+    tone: "border-sky-100 bg-gradient-to-br from-sky-50 to-sky-100 dark:border-sky-900 dark:from-sky-950 dark:to-sky-900",
+    labelTone: "text-sky-800 dark:text-sky-300",
+    valueTone: "text-sky-900 dark:text-sky-100",
+    value: (tasks: Task[]) => count(tasks, "Hold"),
+  },
 ];
 
 export default function BoardOverview({ tasks }: { tasks: Task[] }) {
@@ -42,7 +49,7 @@ export default function BoardOverview({ tasks }: { tasks: Task[] }) {
   return (
     <section className="mt-6">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">Overview</h3>
-      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         {cards.map((card, index) => (
           <motion.div
             key={card.label}

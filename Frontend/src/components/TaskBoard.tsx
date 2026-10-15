@@ -16,7 +16,7 @@ import type { Task, TaskBoardProps, TaskStatus } from "../types";
 import TaskColumn from "./TaskColumn";
 import { TaskCardFace } from "./TaskCard";
 
-const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
+const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done", "Hold"];
 
 function isStatus(value: string): value is TaskStatus {
   return STATUSES.includes(value as TaskStatus);
@@ -74,7 +74,7 @@ export default function TaskBoard({ tasks, canEdit, onMove, onEdit, onDelete, on
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveTask(null)}
     >
-      <div className="mt-6 grid flex-1 content-stretch gap-4 md:grid-cols-3">
+      <div className="mt-6 grid flex-1 grid-cols-4 content-stretch gap-4">
         {STATUSES.map((status) => (
           <TaskColumn
             key={status}

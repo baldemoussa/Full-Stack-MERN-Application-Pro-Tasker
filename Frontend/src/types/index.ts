@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 export type UserRole = 'admin' | 'user'
 
-export type TaskStatus = 'To Do' | 'In Progress' | 'Done'
+export type TaskStatus = 'To Do' | 'In Progress' | 'Hold' | 'Done'
 
 export type ProjectAccess = 'owner' | 'edit' | 'view'
 

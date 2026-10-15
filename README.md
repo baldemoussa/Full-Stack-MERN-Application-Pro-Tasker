@@ -2,7 +2,7 @@
 
 **Author:** [Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/)
 
-Pro-Tasker is a project board. A user registers, creates projects, invites other registered users, and moves each project's tasks across three columns: To Do, In Progress, and Done.
+Pro-Tasker is a project board. A user registers, creates projects, invites other registered users, and moves each project's tasks across four columns: To Do, In Progress, Done, and Hold.
 
 The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller. Project and task routes then check whether that caller is the owner, an editor, or a viewer.
 
@@ -19,7 +19,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 
 ### Project board
 
-![Project board with To Do, In Progress, and Done columns](docs/screenshots/dashboard.png)
+![Project board with To Do, In Progress, Done, and Hold columns](docs/screenshots/dashboard.png)
 
 ### Night mode
 
@@ -40,7 +40,7 @@ Both services deploy from the `main` branch. The application is the React site. 
 - Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
 - Create, read, update, and delete tasks nested under a project. View-only collaborators can read the board and add comments.
 - Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
-- An overview counts Total, To Do, In Progress, and Done for the open project.
+- An overview counts Total, To Do, In Progress, Done, and Hold for the open project.
 - Drag a card onto another column. The new status is saved. Edit still changes status too.
 - Deleting a project also deletes that project's tasks and comments. Only the owner can delete a project.
 - Light mode and night mode. The choice is saved in `localStorage`.
@@ -173,7 +173,7 @@ The owner is stored as `user`. The client cannot change that field or the collab
 | POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
 | DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
 
-`status` is `To Do`, `In Progress`, or `Done`. It defaults to `To Do`. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
+`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
 
 ## How a request moves
 

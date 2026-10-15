@@ -18,7 +18,7 @@ This document describes the delivered application: what it does, how a person us
 
 ## 1. Summary
 
-Pro-Tasker is a web application for personal project tracking. A person creates an account, adds projects, and manages each project's tasks on a three-column board: **To Do**, **In Progress**, and **Done**.
+Pro-Tasker is a web application for personal project tracking. A person creates an account, adds projects, and manages each project's tasks on a four-column board: **To Do**, **In Progress**, **Done**, and **Hold**.
 
 Each account sees the projects it owns and the projects it is invited to. The browser stores a signed token for the current tab. The server checks that token on every project and task request, then checks that the caller is the owner or a collaborator.
 
@@ -54,7 +54,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - Create, view, update, and delete projects.
 - Invite a registered user to a project as **view** or **edit**. The owner can change that permission or remove the person.
 - Create, view, update, and delete tasks under a project when the caller can edit.
-- A board with three columns. Drag a card onto another column, or change the status in **Edit**.
+- A board with four columns. Drag a card onto another column, or change the status in **Edit**.
 - Deleting a project also deletes that project's tasks.
 - Loading indicators while lists and saves are in progress.
 - Error messages from the API, shown on the form that caused them.
@@ -111,10 +111,10 @@ The left side of the dashboard is **My projects**.
 
 ### Tasks
 
-With a project selected, the board shows **To Do**, **In Progress**, and **Done**.
+With a project selected, the board shows four columns in one row: **To Do**, **In Progress**, **Done**, and **Hold**. **Hold** is the last column, for tasks that are paused.
 
 - **New task** asks for a title, a description, and a status. The status starts as **To Do**. View-only people do not see this button.
-- An overview above the columns counts **Total tasks**, **To Do**, **In Progress**, and **Done**.
+- An overview above the columns counts **Total tasks**, **To Do**, **In Progress**, **Done**, and **Hold**.
 - Drag a card onto another column, or onto a card in that column. The card moves, and the API saves the new status. If the save fails, the card returns to the column it left. Edit and Delete stay clickable.
 - **Edit** on a card changes the title, description, and status.
 - **Comments** opens the task thread. Anyone who can see the project can post a comment and reply to a comment. A reply cannot have its own replies. The author can delete their comment. The project owner can delete any comment. Deleting a comment also deletes its replies.
@@ -190,7 +190,7 @@ Create and update use one `useApi` instance. Delete uses another. A delete error
 
 ### Move a task
 
-Dragging a card onto another column, or editing it and choosing **In Progress** or **Done**, sends `PUT /api/projects/:projectId/tasks/:taskId` with the new `status`. The page moves the card immediately. Each column shows only the tasks whose `status` matches its heading. A failed drag puts the card back. View-only collaborators cannot drag.
+Dragging a card onto another column, or editing it and choosing **In Progress**, **Done**, or **Hold**, sends `PUT /api/projects/:projectId/tasks/:taskId` with the new `status`. The page moves the card immediately. Each column shows only the tasks whose `status` matches its heading. A failed drag puts the card back. View-only collaborators cannot drag.
 
 ---
 
@@ -410,7 +410,7 @@ PUT or DELETE /api/projects/:projectId/tasks/:taskId
   -> 200 updated task, or { message: "Task deleted!" }
 ```
 
-`status` is the only field that changes which column a task belongs to. Allowed values are `To Do`, `In Progress`, and `Done`. An unknown status fails Mongoose validation and returns **400**. The default on create is `To Do`.
+`status` is the only field that changes which column a task belongs to. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`. An unknown status fails Mongoose validation and returns **400**. The default on create is `To Do`.
 
 ### What each layer is allowed to do
 
@@ -623,7 +623,7 @@ The password is hashed in a pre-save hook when the user is created or the passwo
 | --- | --- |
 | `title` | Required, trimmed |
 | `description` | Required, trimmed |
-| `status` | `To Do`, `In Progress`, or `Done`. Default `To Do` |
+| `status` | `To Do`, `In Progress`, `Done`, or `Hold`. Default `To Do` |
 | `project` | Required ObjectId reference to Project. Set from the URL. A client cannot replace it on update |
 
 A task has no owner field of its own. Who may change it depends on the parent project: the owner and `edit` collaborators can change tasks. A `view` collaborator can read them.
@@ -919,7 +919,7 @@ All of these require a token. The server checks the caller's access on the paren
 }
 ```
 
-`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, and `Done`.
+`status` may be omitted and then defaults to `To Do`. Allowed values are `To Do`, `In Progress`, `Done`, and `Hold`.
 
 **201** returns the created task.
 

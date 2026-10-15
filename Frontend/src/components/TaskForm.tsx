@@ -3,7 +3,7 @@ import Alert from "./Alert";
 import Spinner from "./Spinner";
 import type { TaskFormProps, TaskStatus } from "../types";
 
-const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
+const STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done", "Hold"];
 
 // Create or edit a task. Status must match the backend enum.
 export default function TaskForm({
