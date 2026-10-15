@@ -105,6 +105,7 @@ Refreshing the dashboard keeps the person signed in. Closing the tab ends the se
 The left side of the dashboard is **My projects**.
 
 - **Search projects** matches the name or the description. The open board stays in place while the list narrows. Clearing the box shows every project again.
+- **Sort** orders the list by **Newest**, **Oldest**, **Name A–Z**, or **Name Z–A**. Newest is the starting order. Open projects and archived projects are sorted separately. Each project shows the date it was created. The open board shows that date under the description.
 - **New project** asks for a name and a description. Both are required. The owner can also add collaborators by email, each as **Can edit** or **View only**. Those people need an account already. The project is created only when every email is valid.
 - Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
 - The **Share** icon is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.

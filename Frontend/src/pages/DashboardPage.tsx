@@ -21,6 +21,7 @@ import type { ApiMessage, CollaboratorPermission, Project, ProjectFormValues, Ta
 import { authHeaders } from "../utils/authHeaders";
 import { projectMembers } from "../utils/projectMembers";
 import { matchesTask } from "../utils/taskFilters";
+import { compareProjects, formatCreatedDate, type ProjectSort } from "../utils/projectSort";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const [commentTask, setCommentTask] = useState<Task | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [projectQuery, setProjectQuery] = useState("");
+  const [projectSort, setProjectSort] = useState<ProjectSort>("newest");
   const [taskQuery, setTaskQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -95,12 +97,14 @@ export default function DashboardPage() {
 
   const selectedProject = projects.find((project) => project._id === selectedId) ?? null;
   const projectNeedle = projectQuery.trim().toLowerCase();
-  const visibleProjects = projects.filter((project) => {
-    if (!projectNeedle) {
-      return true;
-    }
-    return `${project.name} ${project.description}`.toLowerCase().includes(projectNeedle);
-  });
+  const visibleProjects = projects
+    .filter((project) => {
+      if (!projectNeedle) {
+        return true;
+      }
+      return `${project.name} ${project.description}`.toLowerCase().includes(projectNeedle);
+    })
+    .sort(compareProjects(projectSort));
   const openProjects = visibleProjects.filter((project) => projectStatus(project) !== "archived");
   const archivedProjects = visibleProjects.filter((project) => projectStatus(project) === "archived");
   const visibleTasks = tasks.filter((task) => matchesTask(task, taskQuery, statusFilter, priorityFilter));
@@ -285,16 +289,31 @@ export default function DashboardPage() {
             </IconButton>
           </div>
           {projects.length > 0 && (
-            <label className="mt-3 block">
-              <span className="sr-only">Search projects</span>
-              <input
-                className="field"
-                type="search"
-                value={projectQuery}
-                onChange={(event) => setProjectQuery(event.target.value)}
-                placeholder="Search projects"
-              />
-            </label>
+            <div className="mt-3 space-y-2">
+              <label className="block">
+                <span className="sr-only">Search projects</span>
+                <input
+                  className="field"
+                  type="search"
+                  value={projectQuery}
+                  onChange={(event) => setProjectQuery(event.target.value)}
+                  placeholder="Search projects"
+                />
+              </label>
+              <label className="block">
+                <span className="sr-only">Sort projects</span>
+                <select
+                  className="field"
+                  value={projectSort}
+                  onChange={(event) => setProjectSort(event.target.value as ProjectSort)}
+                >
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="name">Name A–Z</option>
+                  <option value="name-desc">Name Z–A</option>
+                </select>
+              </label>
+            </div>
           )}
           <Alert message={projectList.error} />
           <div className="mt-3 min-h-0 flex-1 overflow-y-auto">
@@ -346,6 +365,11 @@ export default function DashboardPage() {
                 <div className="min-w-0">
                   <h2 className="break-words text-2xl font-semibold">{selectedProject.name}</h2>
                   <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{selectedProject.description}</p>
+                  {formatCreatedDate(selectedProject.createdAt) && (
+                    <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                      Created {formatCreatedDate(selectedProject.createdAt)}
+                    </p>
+                  )}
                   {projectStatus(selectedProject) !== "active" && (
                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
                       This project is {projectStatus(selectedProject)}. The board is read only until the owner reopens it.

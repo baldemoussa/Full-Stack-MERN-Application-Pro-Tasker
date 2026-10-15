@@ -12,6 +12,7 @@ import { useFetch } from "../hooks/useFetch";
 import type { Project, Task, TaskPriority, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
 import { analyzeProject } from "../utils/projectAnalytics";
+import { formatCreatedDate } from "../utils/projectSort";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -133,6 +134,11 @@ export default function AnalyticsPage() {
               <div>
                 <h2 className="break-words text-xl font-semibold">{project.name}</h2>
                 <p className="mt-1 break-words text-stone-600 dark:text-stone-300">{project.description}</p>
+                {formatCreatedDate(project.createdAt) && (
+                  <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                    Created {formatCreatedDate(project.createdAt)}
+                  </p>
+                )}
               </div>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 {[
