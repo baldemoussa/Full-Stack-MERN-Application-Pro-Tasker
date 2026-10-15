@@ -68,7 +68,7 @@ The application is a React site. The API is an Express service. Both are hosted 
 - An admin console. The user record has a `role` field, and every new account is `user`. No screen treats `admin` differently.
 - A server-side logout. Logging out removes the token in the browser. The token remains valid until it expires.
 - Automated test suite. The backend `npm test` script is a placeholder.
-- File uploads, comments, due dates, assignees, or notifications.
+- Hosted file uploads, comments, due dates, assignees, or notifications. A profile photo is stored on the user document.
 
 ---
 
@@ -81,7 +81,7 @@ The first request after the API has been idle can take about a minute. Render's 
 ### Create an account
 
 1. Choose **Need an account? Register**.
-2. Enter a username, an email address, and a password of at least 5 characters.
+2. Enter a full name, a position, a username, an email address, and a password of at least 5 characters. A profile photo is optional. A large photo is reduced to a small image before it is saved.
 3. Choose **Create account**.
 
 The application opens the dashboard. A new account has no projects.
@@ -93,7 +93,7 @@ If the username or email is already registered, the form shows the error returne
 1. Enter the email and password on **Log in**.
 2. Choose **Log in**.
 
-The header shows the username. **Log out** returns to the login page and ends the session in this tab.
+The header shows the full name, position, and profile photo. **Log out** returns to the login page and ends the session in this tab.
 
 A wrong email shows `Can't find this user`. A wrong password shows `Wrong password!`.
 
@@ -204,6 +204,9 @@ erDiagram
   PROJECT ||--o{ TASK : contains
   USER {
     string username
+    string fullName
+    string position
+    string profilePhoto
     string email UK
     string password
     string role
@@ -471,7 +474,7 @@ Pages own the data and the handlers. Components receive props and call back. No 
 | Page | Reads | Calls | Renders |
 | --- | --- | --- | --- |
 | `LoginPage` | `login`, `error`, `submitting` | `login({ email, password })`, then `navigate("/dashboard")` | Form fields, `Alert`, `ThemeToggle` |
-| `RegisterPage` | `register`, `error`, `submitting` | `register({ username, email, password })` | Form fields, `Alert`, `ThemeToggle` |
+| `RegisterPage` | `register`, `error`, `submitting` | `register({ fullName, position, profilePhoto, username, email, password })` | Form fields, `Alert`, `ThemeToggle` |
 | `DashboardPage` | `token` | `useFetch` for both lists; `useApi` for every save, delete, drag, and invite | `AppHeader`, `ProjectCard`, `TaskBoard`, `Modal`, forms |
 | `ProjectPage` | The `:projectId` param | None | `AppHeader` and a back link. This is not the board |
 
@@ -586,6 +589,9 @@ MongoDB collection names follow Mongoose defaults: `users`, `projects`, and `tas
 | `email` | Required, unique, must match an email pattern |
 | `password` | Required, at least 5 characters, stored as a bcrypt hash |
 | `role` | `admin` or `user`. Default `user`. Not used by the screens |
+| `fullName` | Required, trimmed |
+| `position` | Required, trimmed |
+| `profilePhoto` | Optional image address or image data. Empty by default |
 
 The password is hashed in a pre-save hook when the user is created or the password changes. Comparison uses `isCorrectPassword`.
 
@@ -702,6 +708,9 @@ No token.
 ```json
 {
   "username": "ada",
+  "fullName": "Ada Lovelace",
+  "position": "Project lead",
+  "profilePhoto": "",
   "email": "ada@example.com",
   "password": "secret1"
 }
@@ -715,6 +724,9 @@ No token.
   "user": {
     "_id": "<id>",
     "username": "ada",
+    "fullName": "Ada Lovelace",
+    "position": "Project lead",
+    "profilePhoto": "",
     "email": "ada@example.com",
     "password": "<bcrypt hash>",
     "role": "user",
@@ -982,7 +994,7 @@ Open the URL Vite prints, usually http://localhost:5173.
 ### Suggested manual check
 
 1. Register a new account.
-2. Confirm the dashboard is empty and shows the username.
+2. Confirm the dashboard is empty and the header shows the full name and position.
 3. Create a project.
 4. Create a task. It appears under **To Do**.
 5. Edit the task and set the status to **In Progress**. The card moves.

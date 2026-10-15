@@ -25,9 +25,18 @@ app.use(
     },
   })
 );
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(routes);
+
+app.use((err, req, res, next) => {
+  if (err.status === 413 || err.type === 'entity.too.large') {
+    res.status(413).json({ message: 'That profile photo is too large. Choose a smaller image.' });
+    return;
+  }
+
+  next(err);
+});
 
 db.once('open', () => {
   app.listen(PORT, () => console.log(`App is listening on localhost:${PORT}`));

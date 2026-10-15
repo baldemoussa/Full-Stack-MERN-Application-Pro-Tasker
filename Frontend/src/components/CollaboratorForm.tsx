@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import Alert from "./Alert";
+import ProfileAvatar from "./ProfileAvatar";
 import Spinner from "./Spinner";
 import type { CollaboratorFormProps, CollaboratorPermission } from "../types";
 
@@ -78,9 +79,18 @@ export default function CollaboratorForm({
               exit={{ opacity: 0, y: -6 }}
               className="flex items-center justify-between gap-3 rounded border border-stone-200 px-3 py-2 dark:border-stone-700"
             >
-              <span className="min-w-0">
-                <span className="block truncate font-medium">{entry.user.username}</span>
-                <span className="block truncate text-sm text-stone-500 dark:text-stone-400">{entry.user.email}</span>
+              <span className="flex min-w-0 items-center gap-2">
+                <ProfileAvatar
+                  name={entry.user.fullName || entry.user.username}
+                  photo={entry.user.profilePhoto}
+                  className="h-8 w-8"
+                />
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{entry.user.fullName || entry.user.username}</span>
+                  <span className="block truncate text-sm text-stone-500 dark:text-stone-400">
+                    {entry.user.position ? `${entry.user.position} · ${entry.user.email}` : entry.user.email}
+                  </span>
+                </span>
               </span>
               <span className="shrink-0 text-sm text-stone-500 dark:text-stone-400">
                 {entry.permission === "edit" ? "Can edit" : "View only"}

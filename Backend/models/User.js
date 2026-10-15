@@ -25,6 +25,30 @@ const userSchema = new Schema({
     enum: ['admin', 'user'],
     default: 'user',
   },
+  fullName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  position: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  profilePhoto: {
+    type: String,
+    default: '',
+    maxlength: [700000, 'Profile photo is too large'],
+    validate: {
+      validator(value) {
+        if (!value) {
+          return true;
+        }
+        return value.startsWith('data:image/') || /^https?:\/\/.+/i.test(value);
+      },
+      message: 'Profile photo must be an image',
+    },
+  },
 }, {
   timestamps: true
 });

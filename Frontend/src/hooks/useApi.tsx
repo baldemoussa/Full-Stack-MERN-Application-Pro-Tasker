@@ -11,6 +11,10 @@ if (!API_URL) {
 
 // Prefer the API's { message } body, such as "Wrong password!", over a generic status.
 async function errorMessage(response: Response) {
+  if (response.status === 413) {
+    return "That profile photo is too large. Choose a smaller image.";
+  }
+
   try {
     const data: unknown = await response.json();
     if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {

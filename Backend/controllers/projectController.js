@@ -1,7 +1,7 @@
 const { Project, Task, User } = require('../models');
 const { accessLevel, canEdit, canView, idOf, presentProject } = require('../utils/access');
 
-const collaboratorFields = 'username email';
+const collaboratorFields = 'username email fullName position profilePhoto';
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

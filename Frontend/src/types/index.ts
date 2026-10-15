@@ -12,6 +12,9 @@ export interface CollaboratorUser {
   _id: string
   username: string
   email: string
+  fullName?: string
+  position?: string
+  profilePhoto?: string
 }
 
 export interface Collaborator {
@@ -26,6 +29,9 @@ export interface User {
   email: string
   password: string
   role: UserRole
+  fullName: string
+  position: string
+  profilePhoto: string
   createdAt: string
   updatedAt: string
 }
@@ -64,6 +70,9 @@ export interface RegisterBody {
   username: string
   email: string
   password: string
+  fullName: string
+  position: string
+  profilePhoto?: string
 }
 
 export interface LoginBody {

@@ -138,7 +138,7 @@ Send `Authorization: Bearer <token>` on every route except register and login. A
 
 | Method | Path | Body |
 | --- | --- | --- |
-| POST | `/api/users/register` | `username`, `email`, `password` (at least 5 characters) |
+| POST | `/api/users/register` | `fullName`, `position`, `username`, `email`, `password` (at least 5 characters). `profilePhoto` is optional |
 | POST | `/api/users/login` | `email`, `password` |
 | GET | `/api/users/me` | — |
 
