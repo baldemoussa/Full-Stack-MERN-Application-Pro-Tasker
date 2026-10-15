@@ -2,20 +2,25 @@
 const { User } = require('../models');
 const { signToken } = require('../utils/auth');
 
+// The profile returned by register, login, and /me. The hash stays on the document.
+function presentUser(user) {
+  const profile = user.toObject();
+  delete profile.password;
+  return profile;
+}
+
 // Creates the account and returns a token so the new person lands on the board.
-// `user` is the same public profile as GET /api/users/me. The hash stays in the database.
 async function registerUser(req, res) {
   try {
     const user = await User.create(req.body);
     const token = signToken(user);
-    res.status(201).json({ token, user });
+    res.status(201).json({ token, user: presentUser(user) });
   } catch (err) {
     res.status(400).json(err);
   }
 }
 
 // Checks the email, then the password. The two failures use different messages.
-// The returned user omits the password hash, matching GET /api/users/me.
 async function loginUser(req, res) {
   try {
     const user = await User.findOne({ email: req.body.email });
@@ -29,13 +34,12 @@ async function loginUser(req, res) {
     }
 
     const token = signToken(user);
-    res.json({ token, user });
+    res.json({ token, user: presentUser(user) });
   } catch (err) {
     res.status(400).json(err);
   }
 }
 
-//function that loads User.findById(req.user._id).select('-password') and returns that user. If no user is found, return 404.
 // The header reads this profile. The password hash is left out.
 async function getMe(req, res) {
   try {
@@ -43,7 +47,7 @@ async function getMe(req, res) {
     if (!user) {
       return res.status(404).json({ message: 'No user found with this id!' });
     }
-    res.json(user);
+    res.json(presentUser(user));
   } catch (err) {
     res.status(400).json(err);
   }
@@ -94,7 +98,7 @@ async function updateMe(req, res) {
 
     await user.save();
     const fresh = await User.findById(user._id).select('-password');
-    res.json(fresh);
+    res.json(presentUser(fresh));
   } catch (err) {
     if (err?.code === 11000) {
       return res.status(400).json({ message: 'That username or email is already used.' });

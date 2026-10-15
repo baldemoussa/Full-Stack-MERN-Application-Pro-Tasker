@@ -22,7 +22,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   // GET /api/users/me proves the token still belongs to a user.
   // Pass null until a token exists so the request does not run too early.
-  // SessionUser omits password because this route does not return it.
+  // The profile from /api/users/me has no password field.
   const me = useFetch<SessionUser>(
     token ? `${API_URL}/api/users/me` : null,
     authHeaders(token),

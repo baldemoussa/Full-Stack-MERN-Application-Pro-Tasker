@@ -32,7 +32,6 @@ export interface User {
   _id: string
   username: string
   email: string
-  password: string
   role: UserRole
   fullName: string
   position: string
@@ -78,7 +77,7 @@ export interface Comment {
 
 export interface AuthResponse {
   token: string
-  user: Omit<User, 'password'>
+  user: User
 }
 
 export interface ApiMessage {
@@ -161,7 +160,7 @@ export interface ApiResponse<TData = unknown> {
   ) => Promise<TData | null>;
 }
 
-export type SessionUser = Omit<User, 'password'>
+export type SessionUser = User
 
 export interface AuthContextType {
   user: SessionUser | null
