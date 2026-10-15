@@ -1185,32 +1185,18 @@ Open the URL Vite prints, usually http://localhost:5173.
 
 ### Sample data
 
-The API must already be running. Both demo people must already have accounts. The loader signs in through `POST /api/users/login` and creates projects, tasks, comments, one closed project, and one archived project. It does not create accounts.
+The API must already be running. From the `Backend` directory, run:
+
+```bash
+npm run sample
+```
+
+The loader creates these two accounts when they are missing, then signs in and adds the projects, tasks, comments, one closed project, and one archived project.
 
 | Full name | Username | Email | Password | Role in the sample |
 | --- | --- | --- | --- | --- |
-| User Tester | user | user@demo.test | user2026 | Owner. Set this as `SAMPLE_OWNER_EMAIL` and `SAMPLE_OWNER_PASSWORD`. |
-| Admin Lead | admin | admin@demo.test | admin2026 | Partner. Set this as `SAMPLE_PARTNER_EMAIL` and `SAMPLE_PARTNER_PASSWORD`. |
-
-From the `Backend` directory, set the four variables, then run the loader. In PowerShell:
-
-```powershell
-$env:SAMPLE_OWNER_EMAIL = "user@demo.test"
-$env:SAMPLE_OWNER_PASSWORD = "user2026"
-$env:SAMPLE_PARTNER_EMAIL = "admin@demo.test"
-$env:SAMPLE_PARTNER_PASSWORD = "admin2026"
-npm run sample
-```
-
-In bash:
-
-```bash
-export SAMPLE_OWNER_EMAIL="user@demo.test"
-export SAMPLE_OWNER_PASSWORD="user2026"
-export SAMPLE_PARTNER_EMAIL="admin@demo.test"
-export SAMPLE_PARTNER_PASSWORD="admin2026"
-npm run sample
-```
+| User Tester | user | user@demo.test | user2026 | Owner of Product launch, Hiring pipeline, Studio notes, and Winter campaign |
+| Admin Lead | admin | admin@demo.test | admin2026 | Owner of Website Redesign, Sprint retro, and Reading list |
 
 `SAMPLE_API_URL` is optional. It defaults to `http://localhost:3000`. Point it at another running API when the data should land there instead.
 
@@ -1222,11 +1208,11 @@ User Tester is the owner in the loader. Admin Lead is the partner. Tasks are ass
 | Hiring pipeline | User Tester | Admin Lead is view only | A board the partner can read and comment on |
 | Studio notes | User Tester | Private | A project with no collaborators |
 | Winter campaign | User Tester | Admin Lead can edit | An archived board |
-| Website Redesign | Admin Lead | User Tester can edit | Extra tasks and a comment thread, added only when that project already exists |
+| Website Redesign | Admin Lead | User Tester can edit | Tasks in every column and a comment thread |
 | Sprint retro | Admin Lead | User Tester is view only | A closed, read-only board |
 | Reading list | Admin Lead | Private | A second private project |
 
-Running `npm run sample` again skips a project, task, or comment that is already there. A project that is already closed or archived is left as it is. **Website Redesign** is the one existing project the loader expects the partner to own. If that project is missing, the loader says so and continues with the others.
+Running `npm run sample` again skips an account, project, task, or comment that is already there. A project that is already closed or archived is left as it is. If `user@demo.test` or `admin@demo.test` already exists with a different password, the loader stops and names that account.
 
 Sign in as **user@demo.test** or **admin@demo.test** and open the dashboard. Each person sees the projects they own and the projects shared with them.
 

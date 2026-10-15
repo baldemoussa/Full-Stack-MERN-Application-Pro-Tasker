@@ -1,10 +1,23 @@
-// Loads sample projects, tasks, and comments through the running API.
-// Passwords stay in the environment. Running this again skips records that already exist.
+// Loads the two demo accounts, then their projects, tasks, and comments, through the running API.
+// Running this again skips an account, project, task, or comment that is already there.
 const base = process.env.SAMPLE_API_URL || "http://localhost:3000";
 
 const people = {
-  A: { email: process.env.SAMPLE_OWNER_EMAIL, password: process.env.SAMPLE_OWNER_PASSWORD },
-  B: { email: process.env.SAMPLE_PARTNER_EMAIL, password: process.env.SAMPLE_PARTNER_PASSWORD },
+  A: {
+    email: "user@demo.test",
+    password: "user2026",
+    username: "user",
+    fullName: "User Tester",
+    position: "Tester",
+  },
+  B: {
+    email: "admin@demo.test",
+    password: "admin2026",
+    username: "admin",
+    fullName: "Admin Lead",
+    position: "Project lead",
+    role: "admin",
+  },
 };
 
 const boards = [
@@ -64,7 +77,6 @@ const boards = [
     owner: "B",
     name: "Website Redesign",
     description: "New layout for the marketing site.",
-    existing: true,
     tasks: [
       { title: "Redesign the homepage hero", description: "One headline, one action, and a short supporting line.", status: "To Do", priority: "High", dueDate: "2026-10-24", assign: "A" },
       { title: "Collect the brand colors", description: "Pull the approved teal and stone values into the style notes.", status: "In Progress", priority: "Low", dueDate: "2026-10-16", assign: "A" },
@@ -99,24 +111,50 @@ const boards = [
   },
 ];
 
-function missingEnv() {
-  return ["SAMPLE_OWNER_EMAIL", "SAMPLE_OWNER_PASSWORD", "SAMPLE_PARTNER_EMAIL", "SAMPLE_PARTNER_PASSWORD"]
-    .filter((key) => !process.env[key]);
+function failureText(body, status) {
+  return body.message || JSON.stringify(body).slice(0, 180) || String(status);
 }
 
-async function login(person) {
-  const res = await fetch(base + "/api/users/login", {
+async function ensureAccount(person, created) {
+  const loginRes = await fetch(base + "/api/users/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email: person.email, password: person.password }),
   });
-  const body = await res.json();
-  if (!res.ok) {
-    throw new Error("Login failed for " + person.email + ": " + (body.message || res.status));
+  const loginBody = await loginRes.json();
+  if (loginRes.ok) {
+    person.token = loginBody.token;
+    person.id = loginBody.user._id;
+    person.label = loginBody.user.fullName || loginBody.user.username;
+    return;
   }
-  person.token = body.token;
-  person.id = body.user._id;
-  person.label = body.user.fullName || body.user.username;
+  if (loginBody.message === "Wrong password!") {
+    throw new Error(person.email + " already exists with a different password.");
+  }
+  if (loginBody.message !== "Can't find this user") {
+    throw new Error("Login failed for " + person.email + ": " + failureText(loginBody, loginRes.status));
+  }
+
+  const registerRes = await fetch(base + "/api/users/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fullName: person.fullName,
+      position: person.position,
+      username: person.username,
+      email: person.email,
+      password: person.password,
+      ...(person.role ? { role: person.role } : {}),
+    }),
+  });
+  const registerBody = await registerRes.json();
+  if (!registerRes.ok) {
+    throw new Error("Could not create " + person.email + ": " + failureText(registerBody, registerRes.status));
+  }
+  person.token = registerBody.token;
+  person.id = registerBody.user._id;
+  person.label = registerBody.user.fullName || registerBody.user.username;
+  created.push("account " + person.label);
 }
 
 async function api(person, method, path, payload) {
@@ -137,14 +175,9 @@ async function api(person, method, path, payload) {
 }
 
 (async () => {
-  const missing = missingEnv();
-  if (missing.length > 0) {
-    throw new Error("Set " + missing.join(", ") + " before loading the sample data.");
-  }
-
-  await login(people.A);
-  await login(people.B);
   const created = [];
+  await ensureAccount(people.A, created);
+  await ensureAccount(people.B, created);
 
   for (const board of boards) {
     const owner = people[board.owner];
@@ -161,9 +194,6 @@ async function api(person, method, path, payload) {
         })),
       });
       created.push("project " + board.name);
-    } else if (!project) {
-      console.log("skip missing " + board.name + " (create that project first, or remove it from the existing list)");
-      continue;
     } else if ((board.invites || []).length > 0 && (project.collaborators || []).length === 0) {
       project = await api(owner, "PUT", "/api/projects/" + project._id, {
         name: project.name,

@@ -135,14 +135,14 @@ Open the URL Vite prints, usually `http://localhost:5173`.
 
 ### Sample data
 
-Start the API first. The two demo accounts must already exist.
+Start the API first. From `Backend`, run `npm run sample`. The command creates the two demo accounts when they are missing, then adds shared boards, tasks, comments, a closed project, and an archived project. Run it again and it skips anything already there.
 
 | Full name | Username | Email | Password |
 | --- | --- | --- | --- |
 | User Tester | user | user@demo.test | user2026 |
 | Admin Lead | admin | admin@demo.test | admin2026 |
 
-From `Backend`, set `SAMPLE_OWNER_EMAIL` and `SAMPLE_OWNER_PASSWORD` to User Tester, and `SAMPLE_PARTNER_EMAIL` and `SAMPLE_PARTNER_PASSWORD` to Admin Lead, then run `npm run sample`. The command signs in and adds shared boards, tasks, comments, a closed project, and an archived project. Run it again and it skips anything already there. The full list is in `DOCUMENTATION.md`, Section 13.
+The full list is in `DOCUMENTATION.md`, Section 13.
 
 ## App routes
 
