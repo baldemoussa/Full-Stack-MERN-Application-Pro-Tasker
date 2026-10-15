@@ -17,23 +17,25 @@ Both services deploy from the `main` branch. The application is the React site. 
 
 ## Screenshots
 
+The pictures below are signed in as User Tester (`user@demo.test`). Admin Lead (`admin@demo.test`) is the person the Product launch tasks are shared with.
+
 ### Dashboard
 
-![Project list, project actions, and the overview counts](docs/screenshots/dashboard.png)
+![User Tester on Product launch, with the project list, overview, and four columns](docs/screenshots/dashboard.png)
 
 ### Board
 
-![To Do and In Progress columns, with priority, a due date, and an overdue card](docs/screenshots/board.png)
+![Product launch columns, including an overdue task assigned to Admin Lead](docs/screenshots/board.png)
 
 ### Analytics
 
-![Status pie chart with a quarter of the tasks in each column](docs/screenshots/analytics.png)
+![Product launch analytics: task counts, the status pie, and the 14-day trend](docs/screenshots/analytics.png)
 
-![Tasks added over the last 14 days](docs/screenshots/analytics-trend.png)
+![Priority and assignments. Admin Lead has three Product launch tasks.](docs/screenshots/analytics-assignments.png)
 
 ### Night mode
 
-![The dashboard in night mode](docs/screenshots/dashboard-night.png)
+![The same Product launch board in night mode](docs/screenshots/dashboard-night.png)
 
 ### Log in
 
