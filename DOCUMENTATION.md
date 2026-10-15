@@ -105,10 +105,10 @@ Refreshing the dashboard keeps the person signed in. Closing the tab ends the se
 The left side of the dashboard is **My projects**.
 
 - **Search projects** matches the name or the description. The open board stays in place while the list narrows. Clearing the box shows every project again.
-- **New project** asks for a name and a description. Both are required.
+- **New project** asks for a name and a description. Both are required. The owner can also add collaborators by email, each as **Can edit** or **View only**. Those people need an account already. The project is created only when every email is valid.
 - Selecting a project opens its board. A project you own can show **Shared**. A project someone shared with you shows **Can edit** or **View only**.
 - The **Share** icon is available to the owner. Enter the email of a registered user and choose **Can edit** or **View only**. Inviting the same email again changes the permission. **Remove** takes that person off the project.
-- **Edit** changes the name and description. Owners and people who can edit see this button. View-only people do not.
+- **Edit** changes the name and description. The owner can also add or remove collaborators in that same form. People who can edit see this button and can change the name and description. View-only people do not.
 - The project actions are icons. The pencil edits the project, the person-plus shares it, the box archives it, the lock closes it, the circular arrows reopen it, and the trash can deletes it.
 - **Close** is available to the owner of an open project. The project stays in the list, marked **Closed**, and the board becomes read only.
 - **Archive** is available to the owner of an open or closed project. The project moves to the **Archived** list and the board stays read only.
@@ -394,7 +394,7 @@ GET /api/users/me
 
 ### Project data
 
-The owner is never taken from the client on create. The controller writes `user: req.user._id` and starts `collaborators` as an empty list. On update, `user`, `collaborators`, and `access` are removed from the body, so a caller cannot reassign the project or edit the invite list through the project update.
+The owner is never taken from the client on create. The controller writes `user: req.user._id`. An optional `invites` list adds collaborators on create. On update, `user`, `collaborators`, and `access` are removed from the body, so a caller cannot replace the stored list directly. `invites` adds or updates people, and `removeCollaboratorIds` takes people off. Only the owner can send either list. A failed email or permission check rejects the whole create or update.
 
 ```text
 POST /api/projects
@@ -891,11 +891,14 @@ All of these require a token. Responses include `access` for the caller. `user`,
 ```json
 {
   "name": "Launch checklist",
-  "description": "Work for the demo"
+  "description": "Work for the demo",
+  "invites": [{ "email": "colleague@example.com", "permission": "edit" }]
 }
 ```
 
-**201** returns the created project. **400** when `name` or `description` is missing.
+**201** returns the created project. `invites` is optional. Each person must already have an account, and the email cannot be the owner's. `permission` is `view` or `edit`. The same email is stored once. If any invite is invalid, the project is not created.
+
+**400** when `name` or `description` is missing, an invite email is empty, or `permission` is not `view` or `edit`. **404** `No registered user with that email.` **400** `The owner is already on this project.`
 
 #### GET `/api/projects`
 
@@ -911,9 +914,9 @@ All of these require a token. Responses include `access` for the caller. `user`,
 
 #### PUT `/api/projects/:id`
 
-Body: `name` and `description`. Owner and edit may call it. View may not.
+Body: `name` and `description`. Owner and edit may call it. View may not. The owner may also send `invites` and `removeCollaboratorIds`. `invites` uses the same email and permission rules as create, and inviting someone who is already on the project changes their permission. `removeCollaboratorIds` is a list of user ids. Removing someone also removes them from task assignments. An editor who sends either list gets **403** `Only the project owner can change collaborators.`
 
-**200** returns the updated project. **404** and **403** use the messages `No project found with this id!` and `User is not authorized to update this project.`
+**200** returns the updated project. **404** and **403** use the messages `No project found with this id!` and `User is not authorized to update this project.` A bad invite or a removal id that is not on the project rejects the update and leaves the project unchanged.
 
 #### DELETE `/api/projects/:id`
 

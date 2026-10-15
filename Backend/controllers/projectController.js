@@ -14,22 +14,91 @@ async function loadProject(id) {
     .populate('collaborators.user', collaboratorFields);
 }
 
-// Name and description only. Owner, collaborators, access, and status have their own routes.
+// Name and description only. Invites are applied separately so a caller cannot replace the owner or the stored list directly.
 function writableFields(body) {
   const updates = { ...body };
   delete updates.user;
   delete updates.collaborators;
+  delete updates.invites;
+  delete updates.removeCollaboratorIds;
   delete updates.access;
   delete updates.status;
   return updates;
 }
 
+// Looks up each email before the project is saved. The same person is kept once.
+async function resolveInvites(invites, ownerId) {
+  if (!Array.isArray(invites)) {
+    return { error: 'Collaborators must be a list.', status: 400 };
+  }
+
+  const entries = [];
+  for (const invite of invites) {
+    const email = String(invite?.email || '').trim();
+    const permission = invite?.permission;
+    if (!email) {
+      return { error: 'Email is required.', status: 400 };
+    }
+    if (permission !== 'view' && permission !== 'edit') {
+      return { error: 'Permission must be view or edit.', status: 400 };
+    }
+
+    const invitee = await User.findOne({
+      email: new RegExp(`^${escapeRegex(email)}$`, 'i'),
+    });
+    if (!invitee) {
+      return { error: 'No registered user with that email.', status: 404 };
+    }
+    if (idOf(invitee._id) === idOf(ownerId)) {
+      return { error: 'The owner is already on this project.', status: 400 };
+    }
+
+    const existing = entries.find((entry) => idOf(entry.user) === idOf(invitee._id));
+    if (existing) {
+      existing.permission = permission;
+    } else {
+      entries.push({ user: invitee._id, permission });
+    }
+  }
+  return { entries };
+}
+
+function applyInvites(project, entries) {
+  for (const entry of entries) {
+    const existing = project.collaborators.find((item) => idOf(item.user) === idOf(entry.user));
+    if (existing) {
+      existing.permission = entry.permission;
+    } else {
+      project.collaborators.push(entry);
+    }
+  }
+}
+
+function applyRemovals(project, ids) {
+  const removed = [];
+  for (const userId of [...new Set(ids.map((id) => String(id)))]) {
+    const entry = project.collaborators.find((item) => idOf(item.user) === userId);
+    if (!entry) {
+      return { error: 'That person is not a collaborator on this project.', status: 404 };
+    }
+    removed.push(idOf(entry.user));
+    project.collaborators.pull(entry._id);
+  }
+  return { removed };
+}
+
 async function createProject(req, res) {
   try {
+    const invites = req.body.invites === undefined ? [] : req.body.invites;
+    const resolved = await resolveInvites(invites, req.user._id);
+    if (resolved.error) {
+      return res.status(resolved.status).json({ message: resolved.error });
+    }
+
     const created = await Project.create({
       ...writableFields(req.body),
       user: req.user._id,
-      collaborators: [],
+      collaborators: resolved.entries,
       status: 'active',
     });
     const project = await loadProject(created._id);
@@ -84,8 +153,35 @@ async function updateProject(req, res) {
       return res.status(403).json({ message: inactiveMessage(project) });
     }
 
+    const invites = req.body.invites;
+    const removeIds = req.body.removeCollaboratorIds;
+    if (invites !== undefined && !Array.isArray(invites)) {
+      return res.status(400).json({ message: 'Collaborators must be a list.' });
+    }
+    if (removeIds !== undefined && !Array.isArray(removeIds)) {
+      return res.status(400).json({ message: 'Removed collaborators must be a list.' });
+    }
+    const changingMembers = (invites?.length || 0) > 0 || (removeIds?.length || 0) > 0;
+    if (changingMembers && accessLevel(project, req.user._id) !== 'owner') {
+      return res.status(403).json({ message: 'Only the project owner can change collaborators.' });
+    }
+
+    const resolved = invites === undefined ? { entries: [] } : await resolveInvites(invites, project.user);
+    if (resolved.error) {
+      return res.status(resolved.status).json({ message: resolved.error });
+    }
+
     Object.assign(project, writableFields(req.body));
+    const removal = removeIds === undefined ? { removed: [] } : applyRemovals(project, removeIds);
+    if (removal.error) {
+      return res.status(removal.status).json({ message: removal.error });
+    }
+    applyInvites(project, resolved.entries);
     await project.save();
+    for (const userId of removal.removed) {
+      await Task.updateMany({ project: project._id }, { $pull: { assignees: userId } });
+    }
+    await project.populate('collaborators.user', collaboratorFields);
     res.json(presentProject(project, req.user._id));
   } catch (err) {
     res.status(500).json(err);

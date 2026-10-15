@@ -17,7 +17,7 @@ import TaskForm from "../components/TaskForm";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 import { useFetch } from "../hooks/useFetch";
-import type { ApiMessage, CollaboratorPermission, Project, ProjectBody, Task, TaskBody, TaskPriority, TaskStatus } from "../types";
+import type { ApiMessage, CollaboratorPermission, Project, ProjectFormValues, Task, TaskBody, TaskPriority, TaskStatus } from "../types";
 import { authHeaders } from "../utils/authHeaders";
 import { projectMembers } from "../utils/projectMembers";
 import { matchesTask } from "../utils/taskFilters";
@@ -29,7 +29,7 @@ function projectStatus(project: Project) {
 }
 
 export default function DashboardPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const projectList = useFetch<Project[]>(
     token ? `${API_URL}/api/projects` : null,
     authHeaders(token)
@@ -125,8 +125,8 @@ export default function DashboardPage() {
     setTaskFormOpen(true);
   }
 
-  async function handleCreateProject(body: ProjectBody) {
-    const created = await projectApi.post<ProjectBody>("/api/projects", body);
+  async function handleCreateProject(body: ProjectFormValues) {
+    const created = await projectApi.post<ProjectFormValues>("/api/projects", body);
     if (!created) {
       return;
     }
@@ -136,12 +136,12 @@ export default function DashboardPage() {
     setProjectFormOpen(false);
   }
 
-  async function handleUpdateProject(body: ProjectBody) {
+  async function handleUpdateProject(body: ProjectFormValues) {
     if (!selectedId) {
       return;
     }
 
-    const updated = await projectApi.put<ProjectBody>(`/api/projects/${selectedId}`, body);
+    const updated = await projectApi.put<ProjectFormValues>(`/api/projects/${selectedId}`, body);
     if (!updated) {
       return;
     }
@@ -464,6 +464,9 @@ export default function DashboardPage() {
                 ? { name: selectedProject.name, description: selectedProject.description }
                 : undefined
             }
+            collaborators={editingProject ? selectedProject?.collaborators ?? [] : []}
+            canInvite={!editingProject || selectedProject?.access === "owner"}
+            ownerEmail={editingProject ? selectedProject?.user.email : user?.email}
             submitLabel={editingProject ? "Save changes" : "Create project"}
             submitting={projectApi.loading}
             error={projectApi.error?.message ?? null}

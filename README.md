@@ -163,10 +163,10 @@ Register and login return a token. The client then calls `/api/users/me` and use
 
 | Method | Path | Body |
 | --- | --- | --- |
-| POST | `/api/projects` | `name`, `description` |
+| POST | `/api/projects` | `name`, `description`, optional `invites` |
 | GET | `/api/projects` | — |
 | GET | `/api/projects/:id` | — |
-| PUT | `/api/projects/:id` | `name`, `description` |
+| PUT | `/api/projects/:id` | `name`, `description`, optional `invites`, optional `removeCollaboratorIds` |
 | DELETE | `/api/projects/:id` | — |
 | PUT | `/api/projects/:id/close` | — |
 | PUT | `/api/projects/:id/archive` | — |
@@ -174,7 +174,7 @@ Register and login return a token. The client then calls `/api/users/me` and use
 | POST | `/api/projects/:id/collaborators` | `email`, `permission` (`view` or `edit`) |
 | DELETE | `/api/projects/:id/collaborators/:userId` | — |
 
-The owner is stored as `user`. The client cannot change that field or the collaborator list through the project update. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, delete the project, or change its status between open, closed, and archived. Delete also removes every task whose `project` is that id, and the comments on those tasks.
+The owner is stored as `user`. The client cannot replace that field. Create and update can add collaborators with `invites`, and update can remove them with `removeCollaboratorIds`. Only the owner can change who is invited. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, delete the project, or change its status between open, closed, and archived. Delete also removes every task whose `project` is that id, and the comments on those tasks.
 
 ### Tasks
 

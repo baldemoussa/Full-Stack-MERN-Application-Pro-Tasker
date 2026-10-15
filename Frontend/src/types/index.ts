@@ -104,6 +104,16 @@ export interface ProjectBody {
   description: string
 }
 
+export interface ProjectInvite {
+  email: string
+  permission: CollaboratorPermission
+}
+
+export interface ProjectFormValues extends ProjectBody {
+  invites: ProjectInvite[]
+  removeCollaboratorIds: string[]
+}
+
 export interface TaskBody {
   title?: string
   description?: string
@@ -238,10 +248,13 @@ export interface SpinnerProps {
 
 export interface ProjectFormProps {
   initialValues?: ProjectBody
+  collaborators?: Collaborator[]
+  canInvite?: boolean
+  ownerEmail?: string
   submitLabel: string
   submitting?: boolean
   error?: string | null
-  onSubmit: (body: ProjectBody) => void
+  onSubmit: (body: ProjectFormValues) => void
   onCancel?: () => void
 }
 
