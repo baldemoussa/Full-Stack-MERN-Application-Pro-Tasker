@@ -1,23 +1,27 @@
 # Pro-Tasker
 
-**Author:** [Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/)
+A shared project board. People register, create projects, invite collaborators, and move tasks across To Do, In Progress, Done, and Hold.
 
-Pro-Tasker is a project board. A user registers, creates projects, invites other registered users, and moves each project's tasks across four columns: To Do, In Progress, Done, and Hold.
+## Description
 
-The API is Express and MongoDB. The client is React. A JSON Web Token identifies the caller. Project and task routes then check whether that caller is the owner, an editor, or a viewer.
+Pro-Tasker is a full-stack MERN application. The client is React. The API is Express and MongoDB. A JSON Web Token identifies the caller. Project and task routes then check whether that caller is the owner, an editor, or a viewer.
 
-## Deployment
+A person can create and share projects, assign tasks to the people a project was shared with, comment on a task, and open analytics for the selected project. The board supports search, filters, sort, due dates, priority, drag and drop, and light or night mode. The full handover record is `DOCUMENTATION.md`.
 
 | Service | URL |
 | --- | --- |
 | Application | https://full-stack-mern-application-pro-tasker-1.onrender.com |
 | API | https://full-stack-mern-application-pro-tasker.onrender.com |
 
-Both services deploy from the `main` branch. The application is the React site. The API is the Express service. Local setup below is for running the same app on your machine.
+| Layer | Tools |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite, React Router, Tailwind CSS, dnd-kit, Motion |
+| Backend | Node.js, Express 5, Mongoose 9, JWT, bcrypt |
+| Database | MongoDB |
 
 ## Screenshots
 
-The pictures below are signed in as User Tester (`user@demo.test`). Admin Lead (`admin@demo.test`) is the person the Product launch tasks are shared with.
+These pictures are signed in as User Tester (`user@demo.test`). Admin Lead (`admin@demo.test`) is the person the Product launch tasks are shared with.
 
 ### Dashboard
 
@@ -45,54 +49,18 @@ The pictures below are signed in as User Tester (`user@demo.test`). Admin Lead (
 
 ![Registration screen](docs/screenshots/register.png)
 
-## Features
+## Getting Started
 
-- Register, log in, and log out. The token is stored in `sessionStorage` and expires after 2 hours. A signed-in user can update their profile and change their password.
-- Create, read, update, and delete projects. The owner can close, archive, or reopen a project. A closed or archived project stays readable and cannot be edited until it is reopened.
-- Share a project with a registered user as view only or can edit. The owner can change that permission or remove the person.
-- Create, read, update, and delete tasks nested under a project. Each task has a priority of Low, Medium, or High, and can be assigned to one or more people the project was shared with. View-only collaborators can read the board and add comments.
-- Search the project list by name or description, and sort it by newest, oldest, or name. Each project shows the date it was created. Search the open board by title, description, or assignee, and filter it by status or priority.
-- Comment on a task, and reply to a comment. The author or the project owner can delete a comment, which also removes its replies.
-- An overview shows the owner, the number of invited contributors, and counts Total, To Do, In Progress, Done, and Hold for the open project.
-- Analytics opens for the selected project and shows completion, a status pie chart, a 14-day trend line, priority, overdue tasks, and assignment totals.
-- Drag a card onto another column. The new status is saved. Edit still changes status too.
-- Deleting a project also deletes that project's tasks and comments. Only the owner can delete a project.
-- Light mode and night mode. The choice is saved in `localStorage`.
+### Dependencies
 
-## Tech stack
+* Node.js 20 or newer, and npm
+* A MongoDB database the API can reach, such as MongoDB Atlas
+* Two terminals, one for the API and one for the client
+* Windows, macOS, or Linux
 
-| Layer | Tools |
-| --- | --- |
-| Frontend | React 19, TypeScript, Vite, React Router, Tailwind CSS, dnd-kit, Motion |
-| Backend | Node.js, Express 5, Mongoose 9, JWT, bcrypt |
-| Database | MongoDB |
+### Installing
 
-## Project structure
-
-```text
-Backend/
-  config/connection.js      MongoDB connection
-  controllers/              User, project, task, and comment handlers
-  models/                   User, Project, Task, Comment
-  routes/api/               /api/users and /api/projects
-  utils/auth.js             Sign a token and require one on protected routes
-  utils/access.js           Owner, edit, and view checks
-  scripts/load-sample-data.js  Sample projects, tasks, and comments
-  server.js
-Frontend/
-  src/components/           Forms, cards, drag-and-drop board, share form, modal, theme toggle
-  src/context/              Auth and theme contracts
-  src/hooks/                useApi (POST, PUT, DELETE) and useFetch (GET)
-  src/pages/                Login, register, dashboard, analytics
-  src/providers/            Session state and light/night mode
-  src/types/index.ts        Shared TypeScript types
-```
-
-## Setup
-
-Use two terminals. Start the API before the client.
-
-### Backend
+Clone the repository and install each app from its own folder.
 
 ```bash
 cd Backend
@@ -107,15 +75,7 @@ MONGO_URI=your-mongodb-connection-string
 JWT_SECRET=your-secret
 ```
 
-`PORT` defaults to `3001` if it is omitted. This project uses `3000` so it matches the client.
-
-```bash
-npm run dev
-```
-
-`npm start` runs the server without nodemon.
-
-### Frontend
+`PORT` defaults to `3001` when it is omitted. This project uses `3000` so it matches the client.
 
 ```bash
 cd Frontend
@@ -129,86 +89,73 @@ VITE_API_URL=http://localhost:3000
 VITE_TOKEN_KEY=pro-tasker-token
 ```
 
+`Backend/.env` and `Frontend/.env` stay off the repository.
+
+### Executing program
+
+Start the API before the client.
+
 ```bash
+cd Backend
 npm run dev
 ```
 
-Open the URL Vite prints, usually `http://localhost:5173`.
+`npm start` runs the API without nodemon. Confirm http://localhost:3000/. The body is `{ "message": "Pro-Tasker API is running." }`.
 
-### Sample data
+```bash
+cd Frontend
+npm run dev
+```
 
-Start the API first. From `Backend`, run `npm run sample`. The command creates the two demo accounts when they are missing, then adds shared boards, tasks, comments, a closed project, and an archived project. Run it again and it skips anything already there.
+Open the URL Vite prints, usually http://localhost:5173.
+
+Load the sample boards after the API is running:
+
+```bash
+cd Backend
+npm run sample
+```
+
+The command creates the two demo accounts when they are missing, then adds shared boards, tasks, comments, a closed project, and an archived project. Running it again skips anything already there.
 
 | Full name | Username | Email | Password |
 | --- | --- | --- | --- |
 | User Tester | user | user@demo.test | user2026 |
 | Admin Lead | admin | admin@demo.test | admin2026 |
 
-The full list is in `DOCUMENTATION.md`, Section 13.
+Sign in as either account. User Tester owns Product launch. Admin Lead owns Website Redesign. Each person also sees the projects shared with them.
 
-## App routes
+## Help
 
-| Path | Who can open it |
-| --- | --- |
-| `/login` | Guests |
-| `/register` | Guests |
-| `/dashboard` | Signed-in users. This is the project sidebar and the task board. |
-| `/projects/:projectId` | Signed-in users |
+* `GET /api/projects` without a token returns 401. Sign in, then open `/dashboard`.
+* The first request to the live API can take about a minute when the free service has been idle.
+* If `user@demo.test` or `admin@demo.test` already exists with a different password, `npm run sample` stops and names that account.
+* Routes: `/login` and `/register` are for guests. `/dashboard` is the board. `/analytics` and `/analytics/:projectId` are the analytics pages. Any other path redirects to `/dashboard`.
+* The API reference, access rules, and deployment steps are in `DOCUMENTATION.md`.
 
-Any other path redirects to `/dashboard`.
+## Authors
 
-## API
+Mamadou Moussa BALDE
 
-Send `Authorization: Bearer <token>` on every route except register and login. A missing or invalid token returns **401**. A caller without access returns **403**. A missing record returns **404**.
+[@Mamadou Moussa BALDE](https://www.linkedin.com/in/2mb/)
 
-### Users
+## Version History
 
-| Method | Path | Body |
-| --- | --- | --- |
-| POST | `/api/users/register` | `fullName`, `position`, `username`, `email`, `password` (at least 5 characters). `profilePhoto` is optional |
-| POST | `/api/users/login` | `email`, `password` |
-| GET | `/api/users/me` | — |
-| PUT | `/api/users/me` | `fullName`, `position`, `username`, `email`, `profilePhoto` |
-| PUT | `/api/users/me/password` | `currentPassword`, `newPassword` (at least 5 characters, and different from the current password) |
+* 1.0
+    * Initial delivery, 14 October 2026
+    * Accounts, shared projects, task board, comments, analytics, and sample data
+    * Source: https://github.com/baldemoussa/Full-Stack-MERN-Application-Pro-Tasker
 
-Register and login return a token. The client then calls `/api/users/me` and uses that user, which does not include the password.
+## License
 
-### Projects
+The backend `package.json` names the ISC license. This repository does not include a `LICENSE.md` file.
 
-| Method | Path | Body |
-| --- | --- | --- |
-| POST | `/api/projects` | `name`, `description`, optional `invites` |
-| GET | `/api/projects` | — |
-| GET | `/api/projects/:id` | — |
-| PUT | `/api/projects/:id` | `name`, `description`, optional `invites`, optional `removeCollaboratorIds` |
-| DELETE | `/api/projects/:id` | — |
-| PUT | `/api/projects/:id/close` | — |
-| PUT | `/api/projects/:id/archive` | — |
-| PUT | `/api/projects/:id/reopen` | — |
-| POST | `/api/projects/:id/collaborators` | `email`, `permission` (`view` or `edit`) |
-| DELETE | `/api/projects/:id/collaborators/:userId` | — |
+## Acknowledgments
 
-The owner is stored as `user`. The client cannot replace that field. Create and update can add collaborators with `invites`, and update can remove them with `removeCollaboratorIds`. Only the owner can change who is invited. `GET /api/projects` includes owned projects and invited projects. Each project includes `access`: `owner`, `edit`, or `view`. Only the owner can invite, remove a collaborator, delete the project, or change its status between open, closed, and archived. Delete also removes every task whose `project` is that id, and the comments on those tasks.
-
-### Tasks
-
-| Method | Path | Body |
-| --- | --- | --- |
-| POST | `/api/projects/:projectId/tasks` | `title`, `description`, `status`, `priority`, `dueDate`, `assignees` |
-| GET | `/api/projects/:projectId/tasks` | — |
-| PUT | `/api/projects/:projectId/tasks/:taskId` | `title`, `description`, `status`, `priority`, `dueDate`, `assignees` |
-| DELETE | `/api/projects/:projectId/tasks/:taskId` | — |
-| GET | `/api/projects/:projectId/tasks/:taskId/comments` | — |
-| POST | `/api/projects/:projectId/tasks/:taskId/comments` | `text`. Optional `parent` comment id for a reply |
-| DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | — |
-
-`status` is `To Do`, `In Progress`, `Done`, or `Hold`. It defaults to `To Do`. `priority` is `Low`, `Medium`, or `High`. It defaults to `Medium`. `assignees` is a list of user ids for people the project was shared with. The owner cannot be assigned. It defaults to an empty list. `dueDate` is an optional `YYYY-MM-DD` date. Update and delete return **404** when the task does not belong to `:projectId`. Anyone who can view the project can comment. A reply's `parent` must be a comment on that task, and that comment cannot itself be a reply. Deleting a comment also deletes its replies.
-
-## How a request moves
-
-1. The dashboard calls `useFetch` for `GET /api/projects` and `GET /api/projects/:id/tasks`.
-2. Create, update, and delete go through `useApi` (`post`, `put`, `del`).
-3. `authMiddleware` reads the bearer token and sets `req.user`.
-4. The controller checks whether the caller is the owner, an editor, or a viewer, then reads or writes MongoDB.
-5. Dragging a card sends `PUT` with the new `status`. The card moves immediately and returns if the save fails.
-6. The page adds the returned record to the list already on screen. A failed call returns `null` and shows the API `message`.
+* [React](https://react.dev/)
+* [Express](https://expressjs.com/)
+* [MongoDB](https://www.mongodb.com/)
+* [Tailwind CSS](https://tailwindcss.com/)
+* [dnd kit](https://dndkit.com/)
+* [Render](https://render.com/)
+* [README template](https://gist.github.com/DomPizzie/7a5ff55ffa9081f2de27c315f5018afc)
